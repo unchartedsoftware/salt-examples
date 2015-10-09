@@ -1,0 +1,5 @@
+.gradle
+gradle/
+node_modules
+build
+output
