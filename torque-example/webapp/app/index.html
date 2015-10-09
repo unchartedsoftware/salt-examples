@@ -1,0 +1,86 @@
+<!html>
+<html>
+  <head>
+    <title>Torque Test</title>
+
+    <link rel="stylesheet" href="http://cdn.leafletjs.com/leaflet-0.7.5/leaflet.css" />
+
+    <style>
+      #map, html, body {
+        width: 100%; height: 100%; padding: 0; margin: 0;
+      }
+      #current-time {
+        position: absolute;
+        bottom: 20px;
+        right: 10px;
+        color: white;
+        font-size: 2em;
+      }
+    </style>
+  </head>
+
+  <body>
+    <div id="map"></div>
+    <div id="current-time"></div>
+  </body>
+
+  <script src="http://cdn.leafletjs.com/leaflet-0.7.5/leaflet.js"></script>
+  <script src="js/torque.full.js"></script>
+
+  <script>
+    // define the torque layer style using cartocss
+    var CARTOCSS = [
+        'Map {',
+        '-torque-time-attribute: "date";',
+        '-torque-aggregation-function: "count(cartodb_id)";',
+        '-torque-frame-count: 288;',
+        '-torque-animation-duration: 15;',
+        '-torque-resolution: 4',
+        '}',
+        '#layer {',
+        '  marker-width: 3;',
+        '  marker-fill-opacity: 0.8;',
+        '  marker-fill: #990000; ',
+        '  comp-op: "screen";',
+        '  [value > 2] { marker-fill: #d7301f; }',
+        '  [value > 3] { marker-fill: #993404; }',
+        '  [value > 4] { marker-fill: #ef6548; }',
+        '  [value > 5] { marker-fill: #fc8d59; }',
+        '  [value > 6] { marker-fill: #fdbb84; }',
+        '  [value > 7] { marker-fill: #fdd49e; }',
+        '  [frame-offset = 1] { marker-width: 10; marker-fill-opacity: 0.05;}',
+        '  [frame-offset = 2] { marker-width: 15; marker-fill-opacity: 0.02;}',
+        '}'
+    ].join('\n');
+
+    // Map control
+    var map = new L.Map('map', {
+      zoomControl: true,
+      center: [40.7, -73.9],
+      zoom: 11,
+      maxZoom: 14
+    });
+
+    // Base map
+    L.tileLayer('http://{s}.basemaps.cartocdn.com/dark_all/{z}/{x}/{y}.png', {
+      attribution: 'CartoDB'
+    }).addTo(map);
+
+    // Torque layer defined by tiles.json
+    var torqueLayer = new L.TorqueLayer({
+      'tileJSON': './tiles.json',
+      cartocss: CARTOCSS
+    });
+    torqueLayer.addTo(map);
+    torqueLayer.play();
+
+    // Current time display
+    var currentTime = document.getElementById('current-time');
+    setInterval(function() {
+      var date = torqueLayer.getTime();
+      var minutes = date.getMinutes();
+      currentTime.innerHTML = date.getHours() + ':' + (minutes < 10 ? '0': '') + minutes;
+    }, 100);
+
+  </script>
+</html>
