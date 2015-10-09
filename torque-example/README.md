@@ -6,6 +6,7 @@ This example illustrates how to use Salt to generate TileJSON output compatible 
 
  - Loading and using CSV data in Spark
  - Non-trivial bin aggregator
+ - Compound tiling jobs (generates pickup and dropoff layers concurrently)
  - Custom output format serialization
  - Saving results to local filesystem on Spark Master
 
@@ -29,7 +30,7 @@ Submit the built JAR to Spark
 ```
 salt-examples/torque-example/ $ docker run -it -v `pwd`/output:/opt/output -v `pwd`/generation:/opt/salt docker.uncharted.software/salt-examples bash
 
-container $ spark-submit --class com.unchartedsoftware.salt.examples.torque.Main /opt/salt/build/libs/mosaic-torque-example-0.1.0.jar
+container $ spark-submit --class software.uncharted.salt.examples.torque.Main /opt/salt/build/libs/salt-torque-example-0.1.0.jar
 ```
 
 Results are written to /opt/output in the container.

@@ -59,28 +59,47 @@ object Main {
       .load("file:///opt/data/taxi_one_day.csv")
       .registerTempTable("taxi_micro")
 
-    val input = sqlContext.sql("select pickup_lon, pickup_lat, CAST(pickup_time as TIMESTAMP) from taxi_micro").rdd.cache
+    val input = sqlContext.sql("select pickup_lon, pickup_lat, CAST(dropoff_lon as double), CAST(dropoff_lat as double), CAST(pickup_time as TIMESTAMP) from taxi_micro")
+      .rdd.cache
 
     // Given an input row, return longitude, latitude as a tuple
-    val coordExtractor = (r: Row) => {
-      Some((r.getDouble(0), r.getDouble(1)))
+    val pickupExtractor = (r: Row) => {
+      if (r.isNullAt(0) || r.isNullAt(1)) {
+        None
+      } else {
+        Some((r.getDouble(0), r.getDouble(1)))
+      }
+    }
+    val dropoffExtractor = (r: Row) => {
+      if (r.isNullAt(2) || r.isNullAt(3)) {
+        None
+      } else {
+        Some((r.getDouble(2), r.getDouble(3)))
+      }
     }
 
     // Given an input row, return the value column
-    val valueExtractor = (r: Row) => {
-      if (r.isNullAt(2)) {
+    val timeExtractor = (r: Row) => {
+      if (r.isNullAt(4)) {
         None
       } else {
-        val time = r.getAs[java.sql.Timestamp](2)
+        val time = r.getAs[java.sql.Timestamp](4)
         Some(List( (time.getHours()*60 + time.getMinutes()) / 5 ))
       }
     }
 
-    // Construct the definition of the tiling job
-    val series = new Series((tileSize-1, tileSize-1),
-      coordExtractor,
+    // Construct the definition of the tiling jobs: pickups and dropoffs
+    val pickups = new Series((tileSize-1, tileSize-1),
+      pickupExtractor,
       new MercatorProjection(),
-      Some(valueExtractor),
+      Some(timeExtractor),
+      new TopElementsAggregator[Int](288),
+      None)
+
+    val dropoffs = new Series((tileSize-1, tileSize-1),
+      dropoffExtractor,
+      new MercatorProjection(),
+      Some(timeExtractor),
       new TopElementsAggregator[Int](288),
       None)
 
@@ -95,29 +114,34 @@ object Main {
 
       // Create a request for all tiles on this level, generate
       val request = new TileLevelRequest(Seq(level), (coord: (Int,Int,Int)) => coord._1)
-      val result = gen.generate(input, Seq(series), request)
+      val result = gen.generate(input, Seq(pickups, dropoffs), request)
 
       // Translate RDD of TileData to RDD of JSON, collect to master for serialization
       val output = result.map(t => {
-        val tile = t(0)
-        // Return tuples of tile coordinate, json string
-        (tile.coords, createTileJSON(tile).toString())
+        t.map( tile => {
+          // Return tuples of tile coordinate, json string
+          (tile.coords, createTileJSON(tile).toString())
+        })
       }).collect
 
       // Save JSON to filesystem
-      output.foreach(tile => {
-        val coord = tile._1
-        val json = tile._2
+      val layerNames = List("pickups", "dropoffs")
+      output.foreach(tileSet => {
+        tileSet.view.zipWithIndex.foreach(tile => {
+          val layerName = layerNames(tile._2)
+          val coord = tile._1._1
+          val json = tile._1._2
 
-        val limit = (1 << coord._1) - 1
+          val limit = (1 << coord._1) - 1
 
-        // TODO replace dest path with arg
-        val file = new File( s"/opt/output/${coord._1}/${coord._2}/${limit - coord._3}.json" )
-        file.getParentFile().mkdirs()
+          // TODO replace dest path with arg
+          val file = new File( s"/opt/output/${layerName}/${coord._1}/${coord._2}/${limit - coord._3}.json" )
+          file.getParentFile().mkdirs()
 
-        val pw = new PrintWriter(file)
-        pw.write(json)
-        pw.close
+          val pw = new PrintWriter(file)
+          pw.write(json)
+          pw.close
+        })
       })
     }
 
