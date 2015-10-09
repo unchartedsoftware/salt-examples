@@ -1,6 +1,6 @@
 # Salt Torque Example
 
-| Shows a single day of New York taxi cab pickups animated over the course of the day
+> Shows a single day of New York taxi cab pickups animated over the course of the day
 
 This example illustrates how to use Salt to generate TileJSON output compatible with [CartoDB's Torque](https://github.com/CartoDB/Torque) library. Salt features used:
 
