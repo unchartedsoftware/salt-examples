@@ -29,7 +29,7 @@ Submit the built JAR to Spark
 ```
 salt-examples/torque-example/ $ docker run -it -v `pwd`/output:/opt/output -v `pwd`/generation:/opt/salt docker.uncharted.software/salt-examples bash
 
-container $ spark-submit --class com.unchartedsoftware.salt.examples.torque.Main /opt/salt/generation/build/libs/mosaic-torque-example-0.13.0.jar
+container $ spark-submit --class com.unchartedsoftware.salt.examples.torque.Main /opt/salt/build/libs/mosaic-torque-example-0.1.0.jar
 ```
 
 Results are written to /opt/output in the container.
