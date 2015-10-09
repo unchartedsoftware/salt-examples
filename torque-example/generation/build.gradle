@@ -20,7 +20,7 @@ project.ext {
   scalaBinaryVersion = '2.10'
   scalaVersion = '2.10.4'
   sparkVersion = '1.4.0'
-  saltVersion = '0.13.0'
+  saltVersion = '0.14.0'
 }
 
 jar {
@@ -52,7 +52,7 @@ configurations {
 }
 
 dependencies {
-    compile "com.unchartedsoftware.salt:salt-core:${saltVersion}"
+    compile "software.uncharted.salt:salt-core:${saltVersion}"
 
     //scala
     provided("org.scala-lang:scala-library:${scalaVersion}")

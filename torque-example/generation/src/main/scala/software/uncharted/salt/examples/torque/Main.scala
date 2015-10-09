@@ -6,14 +6,14 @@ import org.apache.spark.SparkConf
 import org.apache.spark.sql.SQLContext
 import org.apache.spark.sql.Row
 
-import com.unchartedsoftware.salt.core.projection.numeric._
-import com.unchartedsoftware.salt.core.generation.request._
-import com.unchartedsoftware.salt.core.generation.Series
-import com.unchartedsoftware.salt.core.generation.mapreduce.MapReduceTileGenerator
-import com.unchartedsoftware.salt.core.generation.output.TileData
-import com.unchartedsoftware.salt.core.analytic._
-import com.unchartedsoftware.salt.core.analytic.collection._
-import com.unchartedsoftware.salt.core.analytic.Aggregator
+import software.uncharted.salt.core.projection.numeric._
+import software.uncharted.salt.core.generation.request._
+import software.uncharted.salt.core.generation.Series
+import software.uncharted.salt.core.generation.mapreduce.MapReduceTileGenerator
+import software.uncharted.salt.core.generation.output.TileData
+import software.uncharted.salt.core.analytic._
+import software.uncharted.salt.core.analytic.collection._
+import software.uncharted.salt.core.analytic.Aggregator
 
 import scala.util.parsing.json._
 import scala.collection.JavaConversions._
