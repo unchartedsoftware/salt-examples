@@ -12,7 +12,6 @@ import software.uncharted.salt.core.generation.Series
 import software.uncharted.salt.core.generation.mapreduce.MapReduceTileGenerator
 import software.uncharted.salt.core.generation.output.TileData
 import software.uncharted.salt.core.analytic._
-import software.uncharted.salt.core.analytic.collection._
 import software.uncharted.salt.core.analytic.Aggregator
 
 import scala.util.parsing.json._
@@ -22,6 +21,38 @@ import java.io._
 object Main {
 
   val tileSize = 64
+
+  object TimeBucketAggregator extends Aggregator[Int, Option[Array[Int]], List[(Int,Int)]] {
+    def default(): Option[Array[Int]] = {
+      None
+    }
+
+    override def add(current: Option[Array[Int]], next: Option[Int]): Option[Array[Int]] = {
+      var acc = current
+      if (next.isDefined) {
+        if (!acc.isDefined) {
+          acc = Some(Array.fill[Int](288)(0))
+        }
+        acc.get(next.get) += 1
+      }
+      acc
+    }
+
+    override def merge(left: Option[Array[Int]], right: Option[Array[Int]]): Option[Array[Int]] = {
+      (left, right) match {
+        case (Some(l), Some(r)) => Some( (l, r).zipped.map(_ + _) )
+        case (None, x) => x
+        case (x, None) => x
+      }
+    }
+
+    def finish(intermediate: Option[Array[Int]]): List[(Int, Int)] = {
+      intermediate match {
+        case Some(result) => result.zipWithIndex.filter( { case (v,i) => v > 0 } ).map(_.swap).toList
+        case None => List()
+      }
+    }
+  }
 
   // Given a TileData object with bins of List((Int,Int)) create a TileJSON object
   // to the spec given here: https://github.com/CartoDB/tilecubes/blob/master/2.0/spec.md
@@ -93,14 +124,14 @@ object Main {
       pickupExtractor,
       new MercatorProjection(),
       Some(timeExtractor),
-      new TopElementsAggregator[Int](288),
+      TimeBucketAggregator,
       None)
 
     val dropoffs = new Series((tileSize-1, tileSize-1),
       dropoffExtractor,
       new MercatorProjection(),
       Some(timeExtractor),
-      new TopElementsAggregator[Int](288),
+      TimeBucketAggregator,
       None)
 
     // Tile Generator object, which houses the generation logic
