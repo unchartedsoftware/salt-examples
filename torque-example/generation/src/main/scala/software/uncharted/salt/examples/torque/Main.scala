@@ -82,15 +82,22 @@ object Main {
 
 
   def main(args: Array[String]): Unit = {
+    if (args.length < 2) {
+      println("Requires commandline: <spark-submit command> inputFilePath outputPath")
+      System.exit(-1)
+    }
+
+    val inputPath = args(0)
+    val outputPath = args(1)
+
     val conf = new SparkConf().setAppName("salt-torque-example")
     val sc = new SparkContext(conf)
     val sqlContext = new SQLContext(sc)
 
-    // TODO replace source file with arg
     sqlContext.read.format("com.databricks.spark.csv")
       .option("header", "true")
       .option("inferSchema", "true")
-      .load("file:///opt/data/taxi_one_day.csv")
+      .load(s"file://${inputPath}")
       .registerTempTable("taxi_micro")
 
     // Construct an RDD of Rows containing only the fields we need. Cache the result
@@ -182,8 +189,8 @@ object Main {
 
           val limit = (1 << coord._1) - 1
 
-          // TODO replace dest path with arg
-          val file = new File( s"/opt/output/${layerName}/${coord._1}/${coord._2}/${limit - coord._3}.json" )
+          // Use standard TMS path structure and file naming
+          val file = new File( s"${outputPath}/${layerName}/${coord._1}/${coord._2}/${limit - coord._3}.json" )
           file.getParentFile().mkdirs()
 
           val pw = new PrintWriter(file)
