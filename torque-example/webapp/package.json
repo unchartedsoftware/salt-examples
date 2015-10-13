@@ -1,0 +1,14 @@
+{
+  "name": "salt-torque-example",
+  "version": "0.1.0",
+  "description": "Example of using Salt to generate Torque TileJSON formatted tiles",
+  "main": "server.js",
+  "scripts": {
+    "start": "node server.js"
+  },
+  "author": "Rob Harper <rharper@unchartedsoftware.com>",
+  "license": "Apache 2.0",
+  "devDependencies": {
+    "express": "^4.13.3"
+  }
+}

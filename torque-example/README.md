@@ -1,11 +1,12 @@
 # Salt Torque Example
 
-| Shows a single day of New York taxi cab pickups animated over the course of the day
+> Shows a single day of New York taxi cab pickups animated over the course of the day
 
 This example illustrates how to use Salt to generate TileJSON output compatible with [CartoDB's Torque](https://github.com/CartoDB/Torque) library. Salt features used:
 
  - Loading and using CSV data in Spark
- - Non-trivial bin aggregator
+ - Custom, non-trivial bin aggregator
+ - Compound tiling jobs (generates pickup and dropoff layers concurrently)
  - Custom output format serialization
  - Saving results to local filesystem on Spark Master
 
@@ -29,7 +30,7 @@ Submit the built JAR to Spark
 ```
 salt-examples/torque-example/ $ docker run -it -v `pwd`/output:/opt/output -v `pwd`/generation:/opt/salt docker.uncharted.software/salt-examples bash
 
-container $ spark-submit --class com.unchartedsoftware.salt.examples.torque.Main /opt/salt/generation/build/libs/mosaic-torque-example-0.13.0.jar
+container $ spark-submit --class software.uncharted.salt.examples.torque.Main /opt/salt/build/libs/salt-torque-example-0.1.0.jar /opt/data/taxi_one_day.csv /opt/output
 ```
 
 Results are written to /opt/output in the container.
