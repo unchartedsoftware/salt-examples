@@ -23,8 +23,13 @@ import java.io._
 
 object Main {
 
+  // Defines the tile size in both x and y bin dimensions
   val tileSize = 64
 
+  // Custom bin aggregator, accepts integers [0,288) representing 5-minute increments of the day
+  // and tracks count per time bucket using an Array. Uninitialized buckets are left as None to
+  // preseve memory. The finished value of the aggregator is a List of (time, count) pairs where
+  // the count is non-zero
   object TimeBucketAggregator extends Aggregator[Int, Option[Array[Int]], List[(Int,Int)]] {
     def default(): Option[Array[Int]] = {
       None
@@ -57,7 +62,7 @@ object Main {
     }
   }
 
-  // Given a TileData object with bins of List((Int,Int)) create a TileJSON object
+  // Given a TileData object with bins of List((time,count)) create a TileJSON object
   // to the spec given here: https://github.com/CartoDB/tilecubes/blob/master/2.0/spec.md
   def createTileJSON(tile: TileData[(Int,Int,Int), _, _]) = {
     val bins = tile.bins.zipWithIndex.flatMap(x => {
@@ -113,6 +118,7 @@ object Main {
         Some((r.getDouble(0), r.getDouble(1)))
       }
     }
+    // Given an input row, return dropoff longitude, latitude as a tuple
     val dropoffExtractor = (r: Row) => {
       if (r.isNullAt(2) || r.isNullAt(3)) {
         None
@@ -171,7 +177,7 @@ object Main {
       val request = new TileLevelRequest(level, (coord: (Int,Int,Int)) => coord._1)
       val result = gen.generate(input, Seq(pickups, dropoffs), request)
 
-      // Translate RDD of TileData to RDD of JSON, collect to master for serialization
+      // Translate RDD of TileData to RDD of (coordinate,JSON), collect to master for serialization
       val output = result.map(t => {
         t.map( tile => {
           // Return tuples of tile coordinate, json string
@@ -179,7 +185,7 @@ object Main {
         })
       }).collect
 
-      // Save JSON to filesystem
+      // Save JSON to local filesystem
       val layerNames = List("pickups", "dropoffs")
       output.foreach(tileSet => {
         tileSet.view.zipWithIndex.foreach(tile => {
