@@ -153,14 +153,15 @@ object Main {
     // Tile Generator object, which houses the generation logic
     val gen = new MapReduceTileGenerator(sc)
 
-
-    for( level <- 0 to 14 ) {
+    // Iterate over sets of levels to generate. Process several higher levels at once because the
+    // number of tile outputs is quite low. Lower levels done individually due to high tile counts.
+    for( level <- List(List(0,1,2,3,4,5,6,7,8), List(9, 10, 11), List(12), List(13), List(14)) ) {
       println("------------------------------")
       println(s"Generating level ${level}")
       println("------------------------------")
 
-      // Create a request for all tiles on this level, generate
-      val request = new TileLevelRequest(Seq(level), (coord: (Int,Int,Int)) => coord._1)
+      // Create a request for all tiles on these levels, generate
+      val request = new TileLevelRequest(level, (coord: (Int,Int,Int)) => coord._1)
       val result = gen.generate(input, Seq(pickups, dropoffs), request)
 
       // Translate RDD of TileData to RDD of JSON, collect to master for serialization
