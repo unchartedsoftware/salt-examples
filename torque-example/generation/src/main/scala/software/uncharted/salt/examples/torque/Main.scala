@@ -93,10 +93,12 @@ object Main {
       .load("file:///opt/data/taxi_one_day.csv")
       .registerTempTable("taxi_micro")
 
-    val input = sqlContext.sql("select pickup_lon, pickup_lat, CAST(dropoff_lon as double), CAST(dropoff_lat as double), CAST(pickup_time as TIMESTAMP) from taxi_micro")
+    // Construct an RDD of Rows containing only the fields we need. Cache the result
+    // (must cast a few incorrectly detected columns to double)
+    val input = sqlContext.sql("select pickup_lon, pickup_lat, CAST(dropoff_lon as double), CAST(dropoff_lat as double), CAST(pickup_time as TIMESTAMP), CAST(dropoff_time as TIMESTAMP) from taxi_micro")
       .rdd.cache
 
-    // Given an input row, return longitude, latitude as a tuple
+    // Given an input row, return pickup longitude, latitude as a tuple
     val pickupExtractor = (r: Row) => {
       if (r.isNullAt(0) || r.isNullAt(1)) {
         None
@@ -112,8 +114,8 @@ object Main {
       }
     }
 
-    // Given an input row, return the value column
-    val timeExtractor = (r: Row) => {
+    // Given an input row, return pickup time in 5-minute increments of the day
+    val pickupTimeExtractor = (r: Row) => {
       if (r.isNullAt(4)) {
         None
       } else {
@@ -122,19 +124,29 @@ object Main {
         Some( ((cal.get(Calendar.HOUR_OF_DAY)*60 + cal.get(Calendar.MINUTE)) / 5).toInt )
       }
     }
+    // Same for drop off time
+    val dropoffTimeExtractor = (r: Row) => {
+      if (r.isNullAt(4)) {
+        None
+      } else {
+        val cal = new GregorianCalendar()
+        cal.setTimeInMillis( r.getAs[java.sql.Timestamp](5).getTime )
+        Some( ((cal.get(Calendar.HOUR_OF_DAY)*60 + cal.get(Calendar.MINUTE)) / 5).toInt )
+      }
+    }
 
     // Construct the definition of the tiling jobs: pickups and dropoffs
     val pickups = new Series((tileSize-1, tileSize-1),
       pickupExtractor,
       new MercatorProjection(),
-      Some(timeExtractor),
+      Some(pickupTimeExtractor),
       TimeBucketAggregator,
       None)
 
     val dropoffs = new Series((tileSize-1, tileSize-1),
       dropoffExtractor,
       new MercatorProjection(),
-      Some(timeExtractor),
+      Some(dropoffTimeExtractor),
       TimeBucketAggregator,
       None)
 
