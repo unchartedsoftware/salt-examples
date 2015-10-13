@@ -40,7 +40,7 @@ Results are written to /opt/output in the container.
 
 Build the JAR and generate tiles in one command
 ```
-salt-examples/torque-example/ $ docker run --rm -v `pwd`/output:/opt/output docker.uncharted.software/salt-examples
+salt-examples/torque-example/ $ docker run --rm -v `pwd`/output:/opt/output -v `pwd`/generation:/opt/salt docker.uncharted.software/salt-examples
 ```
 
 To run the container interactively, run:
