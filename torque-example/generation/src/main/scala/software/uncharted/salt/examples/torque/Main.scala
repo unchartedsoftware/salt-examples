@@ -14,6 +14,9 @@ import software.uncharted.salt.core.generation.output.TileData
 import software.uncharted.salt.core.analytic._
 import software.uncharted.salt.core.analytic.Aggregator
 
+import java.util.Calendar
+import java.util.GregorianCalendar
+
 import scala.util.parsing.json._
 import scala.collection.JavaConversions._
 import java.io._
@@ -114,8 +117,9 @@ object Main {
       if (r.isNullAt(4)) {
         None
       } else {
-        val time = r.getAs[java.sql.Timestamp](4)
-        Some(List( (time.getHours()*60 + time.getMinutes()) / 5 ))
+        val cal = new GregorianCalendar()
+        cal.setTimeInMillis( r.getAs[java.sql.Timestamp](4).getTime )
+        Some( ((cal.get(Calendar.HOUR_OF_DAY)*60 + cal.get(Calendar.MINUTE)) / 5).toInt )
       }
     }
 
