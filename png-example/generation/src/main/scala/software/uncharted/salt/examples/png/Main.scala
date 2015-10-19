@@ -133,7 +133,7 @@ object Main {
       // Broadcast the level info to workers
       val bLevelInfo = sc.broadcast(levelInfo)
 
-      // Translate RDD of TileData to RDD of (coordinate,JSON), collect to master for serialization
+      // Translate RDD of TileData to RDD of (coordinate,RGBA Array), collect to master for serialization
       val output = rdd
         .mapPartitions(partition => {
           val levelInfo = bLevelInfo.value
