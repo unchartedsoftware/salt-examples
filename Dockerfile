@@ -3,7 +3,7 @@
 # Apache Spark 1.5.1
 #
 # Build using:
-# $ docker build -t docker.uncharted.software/salt-examples .
+# $ docker build -t uncharted/salt-examples .
 #
 
 FROM uncharted/sparklet:1.5.1
