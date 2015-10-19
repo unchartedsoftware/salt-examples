@@ -26,23 +26,23 @@ object Main {
   val tileSize = 256
 
   // Defines the two color values to interpolate between
-  val fromColor = new Color( 150, 0, 0, 50 );
-  val toColor = new Color( 255, 255, 50, 255 );
+  val fromColor = new Color(150, 0, 0, 50);
+  val toColor = new Color(255, 255, 50, 255);
 
   // Due to the distribution of values, a logarithmic transform is applied
   // to give a more 'gradual' gradient
-  def logTransform( value: Double, min: Double, max: Double ): Double = {
-    val logMin = Math.log10( Math.max( 1, min ) )
-    val logMax = Math.log10( Math.max( 1, max ) )
-    val oneOverLogRange = 1 / ( logMax - logMin )
-    math.log10( value - logMin ) * oneOverLogRange
+  def logTransform(value: Double, min: Double, max: Double): Double = {
+    val logMin = Math.log10(Math.max(1, min))
+    val logMax = Math.log10(Math.max(1, max))
+    val oneOverLogRange = 1 / (logMax - logMin)
+    math.log10(value - logMin) * oneOverLogRange
   }
 
   // Interpolates the color value between the minimum and maximum values provided
-  def interpolateColor( value: Double, min: Double, max: Double ) : Int = {
-    val alpha = logTransform( value, min, max )
-    if ( value == 0 ) {
-      new Color( 255, 255, 255, 0 ).getRGB
+  def interpolateColor(value: Double, min: Double, max: Double): Int = {
+    val alpha = logTransform(value, min, max)
+    if (value == 0) {
+      new Color(255, 255, 255, 0).getRGB
     } else {
       new Color(
         (toColor.getRed * alpha + fromColor.getRed * (1 - alpha)).toInt,
@@ -53,12 +53,12 @@ object Main {
   }
 
   // Creates and returns an Array of RGBA values encoded as 32bit integers
-  def createRGBABuffer(tile: TileData[(Int,Int,Int), Double, (Double,Double)], min: Double, max: Double) : Array[Int] = {
-    val rgbArray = new Array[Int](tileSize*tileSize)
-    tile.bins.zipWithIndex.foreach( b => {
+  def createRGBABuffer(tile: TileData[(Int, Int, Int), Double, (Double, Double)], min: Double, max: Double): Array[Int] = {
+    val rgbArray = new Array[Int](tileSize * tileSize)
+    tile.bins.zipWithIndex.foreach(b => {
       val count = b._1
       val index = b._2
-      val color = interpolateColor( count, min, max )
+      val color = interpolateColor(count, min, max)
       rgbArray(index) = color;
     })
     rgbArray
@@ -97,7 +97,7 @@ object Main {
     }
 
     // Construct the definition of the tiling jobs: pickups
-    val pickups = new Series((tileSize-1, tileSize-1),
+    val pickups = new Series((tileSize - 1, tileSize - 1),
       pickupExtractor,
       new MercatorProjection(),
       None,
@@ -109,13 +109,13 @@ object Main {
 
     // Iterate over sets of levels to generate. Process several higher levels at once because the
     // number of tile outputs is quite low. Lower levels done individually due to high tile counts.
-    for( level <- List(List(0,1,2,3,4,5,6,7,8), List(9, 10, 11), List(12), List(13) ) ) {
+    for (level <- List(List(0, 1, 2, 3, 4, 5, 6, 7, 8), List(9, 10, 11), List(12), List(13))) {
       println("------------------------------")
       println(s"Generating level $level")
       println("------------------------------")
 
       // Create a request for all tiles on these levels, generate
-      val request = new TileLevelRequest(level, (coord: (Int,Int,Int)) => coord._1)
+      val request = new TileLevelRequest(level, (coord: (Int, Int, Int)) => coord._1)
       val rdd = gen.generate(input, Seq(pickups), request)
 
       // In order to properly interpolate the color ranges, the minimum and maximum
@@ -131,21 +131,21 @@ object Main {
         .toMap
 
       // Broadcast the level info to workers
-      val bLevelInfo = sc.broadcast( levelInfo )
+      val bLevelInfo = sc.broadcast(levelInfo)
 
       // Translate RDD of TileData to RDD of (coordinate,JSON), collect to master for serialization
       val output = rdd
         .mapPartitions(partition => {
           val levelInfo = bLevelInfo.value
           partition
-            .map( s => s(0).asInstanceOf[TileData[(Int, Int, Int), Double, (Double, Double)]])
-            .map( tile => {
+            .map(s => s(0).asInstanceOf[TileData[(Int, Int, Int), Double, (Double, Double)]])
+            .map(tile => {
               val level = tile.coords._1
-              val minMax = levelInfo( level )
+              val minMax = levelInfo(level)
               // Return tuples of tile coordinate, RGBA Array
               (tile.coords, createRGBABuffer(tile, minMax._1, minMax._2))
             })
-          })
+        })
         .collect
 
       // Save PNG to local filesystem
@@ -158,7 +158,7 @@ object Main {
         System.arraycopy(rgbArray, 0, buffer, 0, rgbArray.length)
         val limit = (1 << coord._1) - 1
         // Use standard TMS path structure and file naming
-        val file = new File( s"${outputPath}/${layerName}/${coord._1}/${coord._2}/${limit - coord._3}.png" )
+        val file = new File(s"${outputPath}/${layerName}/${coord._1}/${coord._2}/${limit - coord._3}.png")
         file.getParentFile().mkdirs()
         ImageIO.write(bi, "png", file);
       })
