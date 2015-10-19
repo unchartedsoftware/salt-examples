@@ -1,5 +1,7 @@
 .gradle
-gradle/
 node_modules
 build
 output
+.DS_Store
+.idea
+*.iml
