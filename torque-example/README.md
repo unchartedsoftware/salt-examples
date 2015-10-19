@@ -28,7 +28,7 @@ salt-examples/torque-example/generation $ ./gradlew assemble
 
 Submit the built JAR to Spark
 ```
-salt-examples/torque-example/ $ docker run -it -v `pwd`/output:/opt/output -v `pwd`/generation:/opt/salt docker.uncharted.software/salt-examples bash
+salt-examples/torque-example/ $ docker run -it -v `pwd`/output:/opt/output -v `pwd`/generation:/opt/salt uncharted/salt-examples bash
 
 container $ spark-submit --class software.uncharted.salt.examples.torque.Main /opt/salt/build/libs/salt-torque-example-0.1.0.jar /opt/data/taxi_one_day.csv /opt/output
 ```
@@ -40,12 +40,12 @@ Results are written to /opt/output in the container.
 
 Build the JAR and generate tiles in one command
 ```
-salt-examples/torque-example/ $ docker run --rm -v `pwd`/output:/opt/output -v `pwd`/generation:/opt/salt docker.uncharted.software/salt-examples
+salt-examples/torque-example/ $ docker run --rm -v `pwd`/output:/opt/output -v `pwd`/generation:/opt/salt uncharted/salt-examples
 ```
 
 To run the container interactively, run:
 ```
-salt-examples/torque-example/ $ docker run -it -v `pwd`/output:/opt/output -v `pwd`/generation:/opt/salt docker.uncharted.software/salt-examples bash
+salt-examples/torque-example/ $ docker run -it -v `pwd`/output:/opt/output -v `pwd`/generation:/opt/salt uncharted/salt-examples bash
 ```
 
 ### Viewing Results
