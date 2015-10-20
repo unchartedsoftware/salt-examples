@@ -1,13 +1,13 @@
-# Salt PNG Example
+# Salt Bin Example
 
 > Shows a single day of New York taxi cab pickups
 
-This example illustrates how to use Salt to generate PNG image output. Salt features used:
+This example illustrates how to use Salt to generate bin file output. Salt features used:
 
  - Loading and using CSV data in Spark
  - Count bin aggregator
  - Min-max tile aggregator
- - PNG image output format
+ - Bin file output format
  - Saving results to local filesystem on Spark Master
 
 ## Building the Example
@@ -23,14 +23,14 @@ Until Salt exists in the central Maven repo, instructions are a little more invo
 
 Build the example JAR
 ```
-salt-examples/png-example/generation $ ./gradlew assemble
+salt-examples/bin-example/generation $ ./gradlew assemble
 ```
 
 Submit the built JAR to Spark
 ```
-salt-examples/png-example/ $ docker run -it -v `pwd`/output:/opt/output -v `pwd`/generation:/opt/salt uncharted/salt-examples bash
+salt-examples/bin-example/ $ docker run -it -v `pwd`/output:/opt/output -v `pwd`/generation:/opt/salt uncharted/salt-examples bash
 
-container $ spark-submit --class software.uncharted.salt.examples.png.Main /opt/salt/build/libs/salt-png-example-0.1.0.jar /opt/data/taxi_one_day.csv /opt/output
+container $ spark-submit --class software.uncharted.salt.examples.bin.Main /opt/salt/build/libs/salt-bin-example-0.1.0.jar /opt/data/taxi_one_day.csv /opt/output
 ```
 
 Results are written to /opt/output in the container.
@@ -39,12 +39,12 @@ Results are written to /opt/output in the container.
 
 Build the JAR and generate tiles in one command
 ```
-salt-examples/png-example/ $ docker run --rm -v `pwd`/output:/opt/output -v `pwd`/generation:/opt/salt uncharted/salt-examples
+salt-examples/bin-example/ $ docker run --rm -v `pwd`/output:/opt/output -v `pwd`/generation:/opt/salt uncharted/salt-examples
 ```
 
 To run the container interactively, run:
 ```
-salt-examples/png-example/ $ docker run -it -v `pwd`/output:/opt/output -v `pwd`/generation:/opt/salt uncharted/salt-examples bash
+salt-examples/bin-example/ $ docker run -it -v `pwd`/output:/opt/output -v `pwd`/generation:/opt/salt uncharted/salt-examples bash
 ```
 
 ### Viewing Results
