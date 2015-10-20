@@ -26,8 +26,8 @@ object Main {
   val tileSize = 256
 
   // Defines the two color values to interpolate between
-  val fromColor = new Color(150, 0, 0, 50);
-  val toColor = new Color(255, 255, 50, 255);
+  val fromColor = new Color(150, 0, 0, 150)
+  val toColor = new Color(255, 255, 50, 255)
 
   // Due to the distribution of values, a logarithmic transform is applied
   // to give a more 'gradual' gradient
@@ -35,7 +35,7 @@ object Main {
     val logMin = Math.log10(Math.max(1, min))
     val logMax = Math.log10(Math.max(1, max))
     val oneOverLogRange = 1 / (logMax - logMin)
-    math.log10(value - logMin) * oneOverLogRange
+    Math.log10(value - logMin) * oneOverLogRange
   }
 
   // Interpolates the color value between the minimum and maximum values provided
@@ -47,7 +47,8 @@ object Main {
       new Color(
         (toColor.getRed * alpha + fromColor.getRed * (1 - alpha)).toInt,
         (toColor.getGreen * alpha + fromColor.getGreen * (1 - alpha)).toInt,
-        (toColor.getBlue * alpha + fromColor.getBlue * (1 - alpha)).toInt
+        (toColor.getBlue * alpha + fromColor.getBlue * (1 - alpha)).toInt,
+        (toColor.getAlpha * alpha + fromColor.getAlpha * (1 - alpha)).toInt
       ).getRGB
     }
   }
@@ -59,7 +60,7 @@ object Main {
       val count = b._1
       val index = b._2
       val color = interpolateColor(count, min, max)
-      rgbArray(index) = color;
+      rgbArray(index) = color
     })
     rgbArray
   }
@@ -85,7 +86,7 @@ object Main {
 
     // Construct an RDD of Rows containing only the fields we need. Cache the result
     val input = sqlContext.sql("select pickup_lon, pickup_lat from taxi_micro")
-      .rdd.cache
+      .rdd.cache()
 
     // Given an input row, return pickup longitude, latitude as a tuple
     val pickupExtractor = (r: Row) => {
@@ -122,12 +123,12 @@ object Main {
       // counts for each zoom level must be known.
       // Create map from each level to min / max values.
       val levelInfo = rdd
-        .map(s => s(0).asInstanceOf[TileData[(Int, Int, Int), Double, (Double, Double)]])
+        .map(s => s.head.asInstanceOf[TileData[(Int, Int, Int), Double, (Double, Double)]])
         .map(t => (t.coords._1, t.tileMeta.get))
         .reduceByKey((l, r) => {
           (Math.min(l._1, r._1), Math.max(l._2, r._2))
         })
-        .collect
+        .collect()
         .toMap
 
       // Broadcast the level info to workers
@@ -138,7 +139,7 @@ object Main {
         .mapPartitions(partition => {
           val levelInfo = bLevelInfo.value
           partition
-            .map(s => s(0).asInstanceOf[TileData[(Int, Int, Int), Double, (Double, Double)]])
+            .map(s => s.head.asInstanceOf[TileData[(Int, Int, Int), Double, (Double, Double)]])
             .map(tile => {
               val level = tile.coords._1
               val minMax = levelInfo(level)
@@ -146,7 +147,7 @@ object Main {
               (tile.coords, createRGBABuffer(tile, minMax._1, minMax._2))
             })
         })
-        .collect
+        .collect()
 
       // Save PNG to local filesystem
       output.foreach(tile => {
@@ -158,9 +159,9 @@ object Main {
         System.arraycopy(rgbArray, 0, buffer, 0, rgbArray.length)
         val limit = (1 << coord._1) - 1
         // Use standard TMS path structure and file naming
-        val file = new File(s"${outputPath}/${layerName}/${coord._1}/${coord._2}/${limit - coord._3}.png")
-        file.getParentFile().mkdirs()
-        ImageIO.write(bi, "png", file);
+        val file = new File(s"$outputPath/$layerName/${coord._1}/${coord._2}/${limit - coord._3}.png")
+        file.getParentFile.mkdirs()
+        ImageIO.write(bi, "png", file)
       })
     }
 

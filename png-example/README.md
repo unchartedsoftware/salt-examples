@@ -35,7 +35,6 @@ container $ spark-submit --class software.uncharted.salt.examples.png.Main /opt/
 
 Results are written to /opt/output in the container.
 
-
 #### When container is able to build example JAR
 
 Build the JAR and generate tiles in one command
