@@ -14,7 +14,6 @@ import software.uncharted.salt.core.analytic.numeric._
 
 import java.io._
 
-import scala.collection.mutable
 import scala.util.parsing.json.JSONObject
 
 object Main {
@@ -22,15 +21,16 @@ object Main {
   // Defines the tile size in both x and y bin dimensions
   val tileSize = 256
 
+  // Defines the output layer name
   val layerName = "pickups"
 
-  // Creates and returns an Array of RGBA values encoded as 32bit integers
-  def createByteBuffer(tile: TileData[(Int,Int,Int), Double, (Double,Double)]) : Array[Byte] = {
-    val byteArray = new Array[Byte](tileSize*tileSize*8)
+  // Creates and returns an Array of Double values encoded as 64bit Integers
+  def createByteBuffer(tile: TileData[(Int, Int, Int), Double, (Double, Double)]): Array[Byte] = {
+    val byteArray = new Array[Byte](tileSize * tileSize * 8)
     var j = 0
-    tile.bins.foreach( b => {
+    tile.bins.foreach(b => {
       val data = java.lang.Double.doubleToLongBits(b)
-      for(i <- 0 to 7) {
+      for (i <- 0 to 7) {
         byteArray(j) = ((data >> (i * 8)) & 0xff).asInstanceOf[Byte]
         j += 1
       }
@@ -71,7 +71,7 @@ object Main {
     }
 
     // Construct the definition of the tiling jobs: pickups
-    val pickups = new Series((tileSize-1, tileSize-1),
+    val pickups = new Series((tileSize - 1, tileSize - 1),
       pickupExtractor,
       new MercatorProjection(),
       None,
@@ -81,24 +81,25 @@ object Main {
     // Tile Generator object, which houses the generation logic
     val gen = new MapReduceTileGenerator(sc)
 
-    val levelBatches = List(List(0,1,2,3,4,5,6,7,8), List(9, 10, 11), List(12), List(13) )
-
-    // Iterate over sets of levels to generate. Process several higher levels at once because the
+    // Break levels into batches. Process several higher levels at once because the
     // number of tile outputs is quite low. Lower levels done individually due to high tile counts.
-    val levelMeta = levelBatches.map( level => {
+    val levelBatches = List(List(0, 1, 2, 3, 4, 5, 6, 7, 8), List(9, 10, 11), List(12), List(13))
+
+    // Iterate over sets of levels to generate.
+    val levelMeta = levelBatches.map(level => {
 
       println("------------------------------")
       println(s"Generating level $level")
       println("------------------------------")
 
       // Create a request for all tiles on these levels, generate
-      val request = new TileLevelRequest(level, (coord: (Int,Int,Int)) => coord._1)
+      val request = new TileLevelRequest(level, (coord: (Int, Int, Int)) => coord._1)
       val rdd = gen.generate(input, Seq(pickups), request)
 
       // Translate RDD of TileData to RDD of (coordinate,byte array), collect to master for serialization
       val output = rdd
-        .map( s => s.head.asInstanceOf[TileData[(Int, Int, Int), Double, (Double, Double)]])
-        .map( tile => {
+        .map(s => s.head.asInstanceOf[TileData[(Int, Int, Int), Double, (Double, Double)]])
+        .map(tile => {
           // Return tuples of tile coordinate, byte array
           (tile.coords, createByteBuffer(tile))
         })
@@ -110,9 +111,9 @@ object Main {
         val byteArray = tile._2
         val limit = (1 << coord._1) - 1
         // Use standard TMS path structure and file naming
-        val file = new File( s"$outputPath/$layerName/${coord._1}/${coord._2}/${limit - coord._3}.bins" )
+        val file = new File(s"$outputPath/$layerName/${coord._1}/${coord._2}/${limit - coord._3}.bins")
         file.getParentFile.mkdirs()
-        val output = new FileOutputStream(file);
+        val output = new FileOutputStream(file)
         output.write(byteArray)
         output.close()
       })
@@ -134,10 +135,10 @@ object Main {
         .toMap
     })
 
-    // Save level metadata to filesystem
+    // Flatten array of maps into a single map
     val levelInfoJSON = JSONObject(levelMeta.reduce(_ ++ _)).toString()
-    println( levelInfoJSON )
-    val pw = new PrintWriter(s"$outputPath/${layerName}/meta.json")
+    // Save level metadata to filesystem
+    val pw = new PrintWriter(s"$outputPath/$layerName/meta.json")
     pw.write(levelInfoJSON)
     pw.close()
 
