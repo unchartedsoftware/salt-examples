@@ -10,8 +10,5 @@
   "license": "Apache 2.0",
   "devDependencies": {
     "express": "^4.13.3"
-  },
-  "dependencies": {
-    "compression": "^1.6.0"
   }
 }
