@@ -1,13 +1,13 @@
-# Salt PNG Example
+# Salt Bin Example
 
 > Shows a single day of New York taxi cab pickups
 
-This example illustrates how to use Salt to generate PNG image output. Salt features used:
+This example illustrates how to use Salt to generate bin file output. Salt features used:
 
  - Loading and using CSV data in Spark
  - Count bin aggregator
  - Min-max tile aggregator
- - PNG image output format
+ - Bin file output format
  - Saving results to local filesystem on Spark Master
 
 ## Building the Example
@@ -19,12 +19,12 @@ Tile generation is done using the code in the `generation/` directory. If you pl
 
 Build the JAR and generate tiles in one command
 ```
-salt-examples/png-example/ $ docker run --rm -v `pwd`/output:/opt/output -v `pwd`/generation:/opt/salt uncharted/salt-examples
+salt-examples/bin-example/ $ docker run --rm -v `pwd`/output:/opt/output -v `pwd`/generation:/opt/salt uncharted/salt-examples
 ```
 
 To run the container interactively, run:
 ```
-salt-examples/png-example/ $ docker run -it -v `pwd`/output:/opt/output -v `pwd`/generation:/opt/salt uncharted/salt-examples bash
+salt-examples/bin-example/ $ docker run -it -v `pwd`/output:/opt/output -v `pwd`/generation:/opt/salt uncharted/salt-examples bash
 ```
 
 ### Viewing Results

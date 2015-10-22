@@ -24,7 +24,7 @@ project.ext {
 }
 
 jar {
-  baseName = 'salt-png-example'
+  baseName = 'salt-bin-example'
   version =  version
   dependsOn configurations.runtime
   from {
@@ -71,7 +71,7 @@ task wrapper(type: Wrapper) {
 
 task run(overwrite: true, type: Exec, dependsOn: [assemble]) {
   executable = 'spark-submit'
-  args = ["--class","software.uncharted.salt.examples.png.Main","/opt/salt/build/libs/salt-png-example-${version}.jar", "/opt/data/taxi_one_day.csv", "/opt/output"]
+  args = ["--class","software.uncharted.salt.examples.bin.Main","/opt/salt/build/libs/salt-bin-example-${version}.jar", "/opt/data/taxi_one_day.csv", "/opt/output"]
 }
 
 idea {
