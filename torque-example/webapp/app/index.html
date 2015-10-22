@@ -95,7 +95,8 @@
 
     var dropoffsLayer = new L.TorqueLayer({
       'tileJSON': './dropoffs.json',
-      cartocss: document.getElementById('dropoff-style').innerHTML
+      cartocss: document.getElementById('dropoff-style').innerHTML,
+      attribution: '<a href="http://unchartedsoftware.github.io/salt">Uncharted Salt</a>'
     });
     dropoffsLayer.addTo(map);
     dropoffsLayer.play();
@@ -104,6 +105,7 @@
     var pickupsLayer = new L.TorqueLayer({
       'tileJSON': './pickups.json',
       cartocss: document.getElementById('pickup-style').innerHTML,
+      attribution: '<a href="http://unchartedsoftware.github.io/salt">Uncharted Salt</a>',
       zIndex: 100
     });
     pickupsLayer.addTo(map);
