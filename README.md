@@ -1,5 +1,9 @@
 # Salt Examples
 
+ - [png-example](./png-example) - illustrates using Salt to build .png image datasets compatible with any TMS visualization library.
+
+ - [bin-example](./bin-example) - illustrates using Salt to build byte file datasets which utilize client-side heatmap rendering using [Leaflet's TileLayer.Canvas](http://leafletjs.com/reference.html#tilelayer-canvas) library.
+
  - [torque-example](./torque-example) - illustrates using Salt to build TileJSON datasets compatible with [CartoDB's Torque](https://github.com/CartoDB/Torque) library.
 
 ## Dependencies
