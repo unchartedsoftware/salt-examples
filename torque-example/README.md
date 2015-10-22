@@ -17,26 +17,6 @@ To build the example you must first generate the TileJSON data (written to the `
 
 Tile generation is done using the code in the `generation/` directory. If you plan on using the included Docker container to run the example, ensure that it's built before continuing (see [root README](../README.md)).
 
-Until Salt exists in the central Maven repo, instructions are a little more involved:
-
-#### While container cannot build examples or to run locally
-
-Build the example JAR
-```
-salt-examples/torque-example/generation $ ./gradlew assemble
-```
-
-Submit the built JAR to Spark
-```
-salt-examples/torque-example/ $ docker run -it -v `pwd`/output:/opt/output -v `pwd`/generation:/opt/salt uncharted/salt-examples bash
-
-container $ spark-submit --class software.uncharted.salt.examples.torque.Main /opt/salt/build/libs/salt-torque-example-0.1.0.jar /opt/data/taxi_one_day.csv /opt/output
-```
-
-Results are written to /opt/output in the container.
-
-#### When container is able to build example JAR
-
 Build the JAR and generate tiles in one command
 ```
 salt-examples/torque-example/ $ docker run --rm -v `pwd`/output:/opt/output -v `pwd`/generation:/opt/salt uncharted/salt-examples
@@ -53,7 +33,7 @@ Results are viewed through a simple web app contained in `webapp/`. After genera
 
 ```
 npm install
-npm run start
+npm start
 ```
 
 The application will be available at http://localhost:3000/

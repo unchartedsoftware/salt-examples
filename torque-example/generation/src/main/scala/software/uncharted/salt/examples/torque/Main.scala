@@ -9,7 +9,7 @@ import software.uncharted.salt.core.projection.numeric._
 import software.uncharted.salt.core.generation.request._
 import software.uncharted.salt.core.generation.Series
 import software.uncharted.salt.core.generation.mapreduce.MapReduceTileGenerator
-import software.uncharted.salt.core.generation.output.TileData
+import software.uncharted.salt.core.generation.output.SeriesData
 import software.uncharted.salt.core.analytic.Aggregator
 
 import java.util.Calendar
@@ -62,8 +62,8 @@ object Main {
 
   // Given a TileData object with bins of List((time,count)) create a TileJSON object
   // to the spec given here: https://github.com/CartoDB/tilecubes/blob/master/2.0/spec.md
-  def createTileJSON(tile: TileData[(Int,Int,Int), _, _]) = {
-    val bins = tile.bins.zipWithIndex.flatMap(x => {
+  def createTileJSON(seriesData: SeriesData[(Int,Int,Int),_,_]) = {
+    val bins = seriesData.bins.zipWithIndex.flatMap(x => {
       val data = x._1.asInstanceOf[List[(Int,Int)]]
       // Only create records for bins with data
       if (data.nonEmpty) {
@@ -83,6 +83,16 @@ object Main {
     JSONArray(bins.toList)
   }
 
+  // Save JSON to local filesystem under a given path.
+  def writeJsonFile(path: String, coord: (Int,Int,Int), json: String) = {
+    val limit = (1 << coord._1) - 1
+    // Use standard TMS path structure and file naming
+    val file = new File( s"$path/${coord._1}/${coord._2}/${limit - coord._3}.json" )
+    file.getParentFile.mkdirs()
+    val pw = new PrintWriter(file)
+    pw.write(json)
+    pw.close()
+  }
 
   def main(args: Array[String]): Unit = {
     if (args.length < 2) {
@@ -175,33 +185,20 @@ object Main {
       val request = new TileLevelRequest(level, (coord: (Int,Int,Int)) => coord._1)
       val result = gen.generate(input, Seq(pickups, dropoffs), request)
 
-      // Translate RDD of TileData to RDD of (coordinate,JSON), collect to master for serialization
+      // Translate RDD of Tiles to RDD of (coordinate,pickupsJSON,dropoffsJSON), collect to master for serialization
       val output = result.map(t => {
-        t.map( tile => {
-          // Return tuples of tile coordinate, json string
-          (tile.coords, createTileJSON(tile).toString())
-        })
+        (t.coords, createTileJSON(pickups(t)).toString(), createTileJSON(dropoffs(t)).toString())
       }).collect()
 
       // Save JSON to local filesystem
-      val layerNames = List("pickups", "dropoffs")
-      output.foreach(tileSet => {
-        tileSet.view.zipWithIndex.foreach(tile => {
-          val layerName = layerNames(tile._2)
-          val coord = tile._1._1
-          val json = tile._1._2
-
-          val limit = (1 << coord._1) - 1
-
-          // Use standard TMS path structure and file naming
-          val file = new File( s"$outputPath/$layerName/${coord._1}/${coord._2}/${limit - coord._3}.json" )
-          file.getParentFile.mkdirs()
-
-          val pw = new PrintWriter(file)
-          pw.write(json)
-          pw.close()
-        })
+      output.foreach(tile => {
+        val coord = tile._1
+        val pickupsJson = tile._2
+        val dropoffsJson = tile._3
+        writeJsonFile(s"$outputPath/pickups", coord, pickupsJson)
+        writeJsonFile(s"$outputPath/dropoffs", coord, dropoffsJson)
       })
+
     }
 
   }
