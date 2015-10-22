@@ -60,7 +60,7 @@ object Main {
     }
   }
 
-  // Given a TileData object with bins of List((time,count)) create a TileJSON object
+  // Given a SeriesData object with bins of List((time,count)) create a TileJSON object
   // to the spec given here: https://github.com/CartoDB/tilecubes/blob/master/2.0/spec.md
   def createTileJSON(seriesData: SeriesData[(Int,Int,Int),_,_]) = {
     val bins = seriesData.bins.zipWithIndex.flatMap(x => {
