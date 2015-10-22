@@ -9,7 +9,7 @@ import software.uncharted.salt.core.projection.numeric._
 import software.uncharted.salt.core.generation.request._
 import software.uncharted.salt.core.generation.Series
 import software.uncharted.salt.core.generation.mapreduce.MapReduceTileGenerator
-import software.uncharted.salt.core.generation.output.TileData
+import software.uncharted.salt.core.generation.output.SeriesData
 import software.uncharted.salt.core.analytic.numeric._
 
 import java.awt.Color
@@ -54,7 +54,7 @@ object Main {
   }
 
   // Creates and returns an Array of RGBA values encoded as 32bit integers
-  def createRGBABuffer(tile: TileData[(Int, Int, Int), Double, (Double, Double)], min: Double, max: Double): Array[Int] = {
+  def createRGBABuffer(tile: SeriesData[(Int, Int, Int), java.lang.Double, (java.lang.Double, java.lang.Double)], min: Double, max: Double): Array[Int] = {
     val rgbArray = new Array[Int](tileSize * tileSize)
     tile.bins.zipWithIndex.foreach(b => {
       val count = b._1
@@ -117,13 +117,13 @@ object Main {
 
       // Create a request for all tiles on these levels, generate
       val request = new TileLevelRequest(level, (coord: (Int, Int, Int)) => coord._1)
-      val rdd = gen.generate(input, Seq(pickups), request)
+      val rdd = gen.generate(input, pickups, request)
 
       // In order to properly interpolate the color ranges, the minimum and maximum
       // counts for each zoom level must be known.
       // Create map from each level to min / max values.
       val levelInfo = rdd
-        .map(s => s.head.asInstanceOf[TileData[(Int, Int, Int), Double, (Double, Double)]])
+        .map(s => pickups(s))
         .map(t => (t.coords._1, t.tileMeta.get))
         .reduceByKey((l, r) => {
           (Math.min(l._1, r._1), Math.max(l._2, r._2))
@@ -134,12 +134,12 @@ object Main {
       // Broadcast the level info to workers
       val bLevelInfo = sc.broadcast(levelInfo)
 
-      // Translate RDD of TileData to RDD of (coordinate,RGBA Array), collect to master for serialization
+      // Translate RDD of Tiles to RDD of (coordinate,RGBA Array), collect to master for serialization
       val output = rdd
         .mapPartitions(partition => {
           val levelInfo = bLevelInfo.value
           partition
-            .map(s => s.head.asInstanceOf[TileData[(Int, Int, Int), Double, (Double, Double)]])
+            .map(s => pickups(s))
             .map(tile => {
               val level = tile.coords._1
               val minMax = levelInfo(level)
