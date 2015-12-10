@@ -29,7 +29,7 @@ salt-examples/torque-example/ $ docker run -it -v /$(pwd)/output:/opt/output -v 
 
 ### Viewing Results
 
-Results are viewed through a simple web app contained in `webapp/`. After generating tiles, run from `webapp\`:
+Results are viewed through a simple web app contained in `webapp/`. After generating tiles, run from `webapp/`:
 
 ```
 npm install

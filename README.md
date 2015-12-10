@@ -24,3 +24,10 @@ $ docker build -t uncharted/salt-examples .
 ```
 
 Please see README.md files in each example directory for further instructions.
+
+### Using Windows?
+
+Windows and Docker don't always play nicely together when it comes to volume mounting. Some tips:
+
+ - Make sure you have \*NIX line endings on all the files in your working copy. Set `$ git config core.autocrlf false` and check out a fresh copy of the `salt-examples` codebase.
+ - If all else fails, try virtualizing a Linux environment
