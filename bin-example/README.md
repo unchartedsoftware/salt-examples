@@ -19,17 +19,17 @@ Tile generation is done using the code in the `generation/` directory. If you pl
 
 Build the JAR and generate tiles in one command
 ```
-salt-examples/bin-example/ $ docker run --rm -v `pwd`/output:/opt/output -v `pwd`/generation:/opt/salt uncharted/salt-examples
+salt-examples/bin-example/ $ docker run --rm -v /$(pwd)/output:/opt/output -v /$(pwd)/generation:/opt/salt uncharted/salt-examples
 ```
 
 To run the container interactively, run:
 ```
-salt-examples/bin-example/ $ docker run -it -v `pwd`/output:/opt/output -v `pwd`/generation:/opt/salt uncharted/salt-examples bash
+salt-examples/bin-example/ $ docker run -it -v /$(pwd)/output:/opt/output -v /$(pwd)/generation:/opt/salt uncharted/salt-examples bash
 ```
 
 ### Viewing Results
 
-Results are viewed through a simple web app contained in `webapp/`. After generating tiles, run from `webapp\`:
+Results are viewed through a simple web app contained in `webapp/`. After generating tiles, run from `webapp/`:
 
 ```
 npm install
