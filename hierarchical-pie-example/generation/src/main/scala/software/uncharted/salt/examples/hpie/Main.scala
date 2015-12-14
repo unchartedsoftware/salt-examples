@@ -30,6 +30,7 @@ object Main {
       val sql = """CREATE TABLE fs_stats
                     (path                   TEXT    NOT NULL,
                      filename               TEXT    NOT NULL,
+                     depth                  INT     NOT NULL,
                      children               INT     NOT NULL,
                      executable_children    INT     NOT NULL,
                      directory_children     INT     NOT NULL,
@@ -136,12 +137,13 @@ object Main {
         tiles.foreach(tile => {
           val path = tile.coords.substring(0, tile.coords.lastIndexOf("/"))
           val filename = tile.coords.substring(tile.coords.lastIndexOf("/")-1)
+          val depth = tile.coords.split("/").length - 1;
           val bytesData = sBytes(tile)
           val childrenData = sChildren(tile)
           val dirsData = sDirectories(tile)
           val execsData = sExecutables(tile)
-          stmt.executeUpdate(s"""INSERT INTO fs_stats (path, filename, children, executable_children, directory_children, cumulative_size_bytes)
-            VALUES ('${path}', '${filename}', ${childrenData.bins(0).toInt}, ${execsData.bins(0).toInt}, ${dirsData.bins(0).toInt}, ${bytesData.bins(0).toInt})""")
+          stmt.executeUpdate(s"""INSERT INTO fs_stats (path, filename, depth,children, executable_children, directory_children, cumulative_size_bytes)
+            VALUES ('${path}', '${filename}', ${depth}, ${childrenData.bins(0).toInt}, ${execsData.bins(0).toInt}, ${dirsData.bins(0).toInt}, ${bytesData.bins(0).toInt})""")
         })
       } finally {
         stmt.close();
