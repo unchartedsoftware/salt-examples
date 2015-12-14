@@ -5,3 +5,5 @@ output
 .DS_Store
 .idea
 *.iml
+derby.log
+metastore_db
