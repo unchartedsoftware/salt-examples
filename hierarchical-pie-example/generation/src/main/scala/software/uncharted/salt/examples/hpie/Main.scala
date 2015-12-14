@@ -136,7 +136,7 @@ object Main {
       try {
         tiles.foreach(tile => {
           val path = tile.coords.substring(0, tile.coords.lastIndexOf("/"))
-          val filename = tile.coords.substring(tile.coords.lastIndexOf("/")-1)
+          val filename = tile.coords.substring(tile.coords.lastIndexOf("/")+1)
           val depth = tile.coords.split("/").length - 1;
           val bytesData = sBytes(tile)
           val childrenData = sChildren(tile)
