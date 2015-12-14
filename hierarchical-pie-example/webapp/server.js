@@ -8,7 +8,7 @@ app.use(express.static('app'));
 
 app.get('/data*', function(req, res) {
   console.log(req.path);
-  //TODO query sqlite database for all directories UNDER the supplied path
+  //TODO query sqlite database for all directories UNDER the supplied path. need to strip /data
 });
 
 var server = app.listen(3000, function () {
