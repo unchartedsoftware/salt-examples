@@ -17,13 +17,20 @@ class PathProjection extends Projection[String, String, Int] {
   override def project(dc: Option[String], z: Int, maxBin: Int): Option[(String, Int)] = {
     if (!dc.isDefined) {
       None
-    } else if (dc.get.indexOf("/") < 0) {
-      val path = dc.get
-      Some((path,0))
     } else {
-      //extract path from input string
-      val path = dc.get.substring(0, dc.get.lastIndexOf("/"))
-      Some((path,0))
+      if (dc.get.indexOf("/") < 0) {
+        val path = dc.get
+        Some((path,0))
+      } else {
+        //extract path from input string and limit to zoom level
+        val pathComponents = dc.get.split("/")
+        if (pathComponents.length < z+1) {
+          None
+        } else {
+          val path = pathComponents.slice(0,z+1).mkString("/")
+          Some((path,0))
+        }
+      }
     }
   }
 

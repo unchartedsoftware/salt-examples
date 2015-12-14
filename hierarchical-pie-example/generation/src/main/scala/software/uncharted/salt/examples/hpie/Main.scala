@@ -29,11 +29,12 @@ object Main {
       stmt.executeUpdate("DROP TABLE IF EXISTS fs_stats;")
       val sql = """CREATE TABLE fs_stats
                     (path                   TEXT    NOT NULL,
+                     full_path              TEXT    NOT NULL,
                      filename               TEXT    NOT NULL,
-                     depth                  INT     NOT NULL,
-                     children               INT     NOT NULL,
-                     executable_children    INT     NOT NULL,
-                     directory_children     INT     NOT NULL,
+                     dirdepth               INT     NOT NULL,
+                     items                  INT     NOT NULL,
+                     executable_items       INT     NOT NULL,
+                     directory_items        INT     NOT NULL,
                      cumulative_size_bytes  INT     NOT NULL,
                      PRIMARY KEY (path, filename)
                     );"""
@@ -61,6 +62,9 @@ object Main {
     val sc = new SparkContext(conf)
     val sqlContext = new SQLContext(sc)
 
+    //use our custom PathProjection
+    val projection = new PathProjection()
+
     //create Series for tracking cumulative bytes
     val pathExtractor = (r: Row) => {
       val fieldIndex = r.fieldIndex("path")
@@ -78,10 +82,10 @@ object Main {
         Some(r.getLong(fieldIndex).toDouble)
       }
     }
-    val sBytes = new Series(0, pathExtractor, new PathProjection(), Some(bytesExtractor), SumAggregator, None)
-    //create Series for tracking total children
-    val sChildren = new Series(0, pathExtractor, new PathProjection(), None, CountAggregator, None)
-    //create Series for tracking total directory children
+    val sBytes = new Series(0, pathExtractor, projection, Some(bytesExtractor), SumAggregator, None)
+    //create Series for tracking total items
+    val ssItems = new Series(0, pathExtractor, projection, None, CountAggregator, None)
+    //create Series for tracking total directory items
     val dirChildExtractor = (r: Row) => {
       val fieldIndex = r.fieldIndex("permissions_string")
       if (r.isNullAt(fieldIndex)) {
@@ -92,8 +96,8 @@ object Main {
         Some(0D)
       }
     }
-    val sDirectories = new Series(0, pathExtractor, new PathProjection(), Some(dirChildExtractor), SumAggregator, None)
-    //create Series for tracking total executable children
+    val sDirectories = new Series(0, pathExtractor, projection, Some(dirChildExtractor), SumAggregator, None)
+    //create Series for tracking total executable items
     val exChildExtractor = (r: Row) => {
       val fieldIndex = r.fieldIndex("permissions_string")
       if (r.isNullAt(fieldIndex)) {
@@ -104,7 +108,7 @@ object Main {
         Some(0D)
       }
     }
-    val sExecutables = new Series(0, pathExtractor, new PathProjection(), Some(exChildExtractor), SumAggregator, None)
+    val sExecutables = new Series(0, pathExtractor, projection, Some(exChildExtractor), SumAggregator, None)
 
     //using the Uncharted Spark Pipeline for ETL
     val inputDataPipe = Pipe(() => {
@@ -119,7 +123,7 @@ object Main {
     //pipe to salt
     .to(rdd => {
       val gen = new MapReduceTileGenerator(sc)
-      gen.generate(rdd, Seq(sBytes, sChildren, sDirectories, sExecutables), new PathRequest())
+      gen.generate(rdd, Seq(sBytes, ssItems, sDirectories, sExecutables), new PathRequest(maxDepth = 5))
     })
     //to simplify example, eliminate SQLite lock contention issue by collecting tiles to master
     .to(_.collect)
@@ -134,18 +138,18 @@ object Main {
           val filename = tile.coords.substring(tile.coords.lastIndexOf("/")+1)
           val depth = tile.coords.split("/").length - 1
           val bytesData = sBytes(tile)
-          val childrenData = sChildren(tile)
+          val itemsData = ssItems(tile)
           val dirsData = sDirectories(tile)
           val execsData = sExecutables(tile)
-          stmt.executeUpdate(s"""INSERT INTO fs_stats (path, filename, depth,children, executable_children, directory_children, cumulative_size_bytes)
-            VALUES ('${path}', '${filename}', ${depth}, ${childrenData.bins(0).toInt}, ${execsData.bins(0).toInt}, ${dirsData.bins(0).toInt}, ${bytesData.bins(0).toInt})""")
+          stmt.executeUpdate(s"""INSERT INTO fs_stats (path, full_path, filename, dirdepth, items, executable_items, directory_items, cumulative_size_bytes)
+            VALUES ('${path}', '${tile.coords}', '${filename}', ${depth}, ${itemsData.bins(0).toInt}, ${execsData.bins(0).toInt}, ${dirsData.bins(0).toInt}, ${bytesData.bins(0).toInt})""")
         })
       } finally {
         //index at the end
         stmt.executeUpdate("CREATE INDEX fs_stats_path_idx ON fs_stats (path)")
-        stmt.executeUpdate("CREATE INDEX fs_stats_children_idx ON fs_stats (children DESC)")
-        stmt.executeUpdate("CREATE INDEX fs_stats_exec_children_idx ON fs_stats (executable_children DESC)")
-        stmt.executeUpdate("CREATE INDEX fs_stats_dir_children_idx ON fs_stats (directory_children DESC)")
+        stmt.executeUpdate("CREATE INDEX fs_stats_items_idx ON fs_stats (items DESC)")
+        stmt.executeUpdate("CREATE INDEX fs_stats_exec_items_idx ON fs_stats (executable_items DESC)")
+        stmt.executeUpdate("CREATE INDEX fs_stats_dir_items_idx ON fs_stats (directory_items DESC)")
         stmt.executeUpdate("CREATE INDEX fs_stats_size_idx ON fs_stats (cumulative_size_bytes DESC)")
         //close connections
         stmt.close()
