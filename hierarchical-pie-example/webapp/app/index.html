@@ -6,15 +6,163 @@
     <title>Salt Hierarchical Pie Example</title>
     <meta name="description" content="Example of using Salt to generate a visualization of heirarchical data">
     <meta name="viewport" content="width=device-width, initial-scale=1">
+
+    <style>
+      body {
+        font-family: "Helvetica Neue", Helvetica, Arial, sans-serif;
+        margin: auto;
+        position: relative;
+      }
+
+      text {
+        font: 18px sans-serif;
+      }
+
+      form {
+        position: absolute;
+        right: 10px;
+        top: 10px;
+      }
+    </style>
+
   </head>
 
   <body>
     <div id="pie"></div>
+
+    <form>
+      <label><input type="radio" name="dataset" value="items" checked> Total Files</label>
+      <label><input type="radio" name="dataset" value="directory_items"> Directories</label>
+      <label><input type="radio" name="dataset" value="executable_items"> Executables</label>
+      <label><input type="radio" name="dataset" value="cumulative_size_bytes"> Size</label>
+    </form>
   </body>
 
   <script src="https://cdnjs.cloudflare.com/ajax/libs/d3/3.5.10/d3.min.js"></script>
 
+
   <script>
-    //TODO implement d3 visualization
+    var width = 960,
+        height = 600,
+        radius = Math.min(width, height) / 2 - 20,
+        color = d3.scale.category20c();
+
+    var container = d3.select("body").append("svg")
+        .attr("width", width)
+        .attr("height", height)
+      .append("g")
+        .attr("transform", "translate(" + width / 2 + "," + height * .52 + ")");
+
+    var pie = container.append("g");
+    var labelG = container.append("g");
+
+    var arc = d3.svg.arc()
+        .startAngle(function(d) { return d.x; })
+        .endAngle(function(d) { return d.x + d.dx; })
+        .innerRadius(function(d) { return Math.sqrt(d.y); })
+        .outerRadius(function(d) { return Math.sqrt(d.y + d.dy); });
+
+    var partition = d3.layout.partition()
+        .sort(null)
+        .size([2 * Math.PI, radius * radius])
+        .value(function(d) { return d.items; })
+
+
+    var currentValueAttr = 'items';
+    var currentPath;
+
+    // Given new data, update the viz
+    function updateData(root) {
+      currentPath = pie.datum(root).selectAll("path")
+          .data(partition.nodes, function(d) { return d._id; });
+
+      currentPath.enter()
+        .append("path")
+          .attr("d", arc)
+          .style("stroke", "#fff")
+          .style("fill", function(d) {
+            if (d.depth) {
+              return color((d.children ? d : d.parent).filename);
+            } else {
+              return '#eee';
+            }
+          })
+          .style("fill-rule", "evenodd")
+          .on("click", onClick)
+          .each(stash)
+        .append('title')
+          .text(function(d) { return d.filename; });
+      currentPath.exit().remove();
+
+      var label = labelG.selectAll("text").data([root], function(d){ return d._id; });
+      label.enter().append("text")
+        .attr("display", function(d) { return d.depth ? "none" : null; }) // hide inner ring
+        .text(function(d) { return d.path+'/'+d.filename; })
+      label.exit().remove();
+    }
+
+    // Change the currently viewd
+    function changeSeries( valueAttr ) {
+      currentValueAttr = valueAttr;
+
+      var valueFn = function(d) {
+        return d[valueAttr];
+      };
+
+      currentPath
+          .data(partition.value(valueFn).nodes, function(d) { return d._id; })
+        .transition()
+          .duration(1500)
+          .attrTween("d", arcTween);
+    };
+
+    // Event handlers
+    function onClick(e) {
+      if (e.depth) {
+        // Down a level
+        setRoot(e.path+'/'+e.filename);
+      } else {
+        // Up a level
+        setRoot(e.path);
+      }
+    };
+
+    d3.selectAll("input").on("change", function change() {
+      changeSeries(this.value);
+    });
+
+    // Data request and manipulation
+    function addId(node) {
+      node._id = 'id:'+Math.random();
+      node.children && node.children.forEach(addId);
+    };
+    function setRoot(path) {
+      d3.json('data/'+path, function(error, root) {
+        if (error) throw error;
+        addId(root);
+        updateData(root, currentValueAttr);
+      });
+    }
+
+    // Stash the old values for transition.
+    function stash(d) {
+      d.x0 = d.x;
+      d.dx0 = d.dx;
+    }
+
+    // Interpolate the arcs in data space.
+    function arcTween(a) {
+      var i = d3.interpolate({x: a.x0, dx: a.dx0}, a);
+      return function(t) {
+        var b = i(t);
+        a.x0 = b.x;
+        a.dx0 = b.dx;
+        return arc(b);
+      };
+    }
+
+    d3.select(self.frameElement).style("height", height + "px");
+
+    setRoot('.');
   </script>
 </html>
