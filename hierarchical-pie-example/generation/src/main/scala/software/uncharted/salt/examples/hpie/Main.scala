@@ -38,11 +38,6 @@ object Main {
                      PRIMARY KEY (path, filename)
                     );"""
       stmt.executeUpdate(sql);
-      stmt.executeUpdate("CREATE INDEX fs_stats_path_idx ON fs_stats (path)")
-      stmt.executeUpdate("CREATE INDEX fs_stats_children_idx ON fs_stats (children DESC)")
-      stmt.executeUpdate("CREATE INDEX fs_stats_exec_children_idx ON fs_stats (executable_children DESC)")
-      stmt.executeUpdate("CREATE INDEX fs_stats_dir_children_idx ON fs_stats (directory_children DESC)")
-      stmt.executeUpdate("CREATE INDEX fs_stats_size_idx ON fs_stats (cumulative_size_bytes DESC)")
     } finally {
       stmt.close();
       db.close()
@@ -137,7 +132,7 @@ object Main {
         tiles.foreach(tile => {
           val path = tile.coords.substring(0, tile.coords.lastIndexOf("/"))
           val filename = tile.coords.substring(tile.coords.lastIndexOf("/")+1)
-          val depth = tile.coords.split("/").length - 1;
+          val depth = tile.coords.split("/").length - 1
           val bytesData = sBytes(tile)
           val childrenData = sChildren(tile)
           val dirsData = sDirectories(tile)
@@ -146,8 +141,15 @@ object Main {
             VALUES ('${path}', '${filename}', ${depth}, ${childrenData.bins(0).toInt}, ${execsData.bins(0).toInt}, ${dirsData.bins(0).toInt}, ${bytesData.bins(0).toInt})""")
         })
       } finally {
-        stmt.close();
-        db.close();
+        //index at the end
+        stmt.executeUpdate("CREATE INDEX fs_stats_path_idx ON fs_stats (path)")
+        stmt.executeUpdate("CREATE INDEX fs_stats_children_idx ON fs_stats (children DESC)")
+        stmt.executeUpdate("CREATE INDEX fs_stats_exec_children_idx ON fs_stats (executable_children DESC)")
+        stmt.executeUpdate("CREATE INDEX fs_stats_dir_children_idx ON fs_stats (directory_children DESC)")
+        stmt.executeUpdate("CREATE INDEX fs_stats_size_idx ON fs_stats (cumulative_size_bytes DESC)")
+        //close connections
+        stmt.close()
+        db.close()
       }
     })
     .run

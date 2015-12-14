@@ -18,7 +18,8 @@ class PathProjection extends Projection[String, String, Int] {
     if (!dc.isDefined) {
       None
     } else if (dc.get.indexOf("/") < 0) {
-      None
+      val path = dc.get
+      Some((path,0))
     } else {
       //extract path from input string
       val path = dc.get.substring(0, dc.get.lastIndexOf("/"))
