@@ -1,0 +1,16 @@
+{
+  "name": "salt-hierarchical-pie-example",
+  "version": "1.0.0",
+  "description": "Example of using Salt to generate a visualization of heirarchical data",
+  "private": true,
+  "main": "server.js",
+  "scripts": {
+    "start": "node server.js"
+  },
+  "author": "Sean McIntyre <smcintyre@unchartedsoftware.com>",
+  "license": "Apache-2.0",
+  "devDependencies": {
+    "express": "^4.13.3",
+    "sqlite3": "3.1.0"
+  }
+}
