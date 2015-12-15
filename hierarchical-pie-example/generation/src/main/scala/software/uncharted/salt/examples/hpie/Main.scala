@@ -176,6 +176,7 @@ object Main {
         db.close()
       }
     })
+    // run pipeline
     .run
   }
 }
