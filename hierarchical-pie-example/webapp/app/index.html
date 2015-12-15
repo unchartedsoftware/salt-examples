@@ -12,6 +12,9 @@
         font-family: "Helvetica Neue", Helvetica, Arial, sans-serif;
         margin: auto;
         position: relative;
+        text-align:center;
+        color: #eee;
+        background-color: #333;
       }
 
       text {
@@ -19,9 +22,15 @@
       }
 
       form {
-        position: absolute;
-        right: 10px;
-        top: 10px;
+        margin-top: 20px;
+        margin-bottom: 20px;
+      }
+      path {
+        opacity: 1;
+        cursor: pointer;
+      }
+      path:hover {
+        opacity: 0.5;
       }
     </style>
 
@@ -79,12 +88,12 @@
       currentPath.enter()
         .append("path")
           .attr("d", arc)
-          .style("stroke", "#fff")
+          .style("stroke", "#333")
           .style("fill", function(d) {
             if (d.depth) {
               return color((d.children ? d : d.parent).filename);
             } else {
-              return '#eee';
+              return '#333';
             }
           })
           .style("fill-rule", "evenodd")
@@ -97,6 +106,7 @@
       var label = labelG.selectAll("text").data([root], function(d){ return d._id; });
       label.enter().append("text")
         .attr("display", function(d) { return d.depth ? "none" : null; }) // hide inner ring
+        .style("fill", "#eee")
         .text(function(d) { return d.path+'/'+d.filename; })
       label.exit().remove();
     }
