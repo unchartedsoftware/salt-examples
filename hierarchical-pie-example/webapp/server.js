@@ -1,3 +1,11 @@
+/**
+ * This is a simple express server which accepts requests for a
+ * root tile (directory) and returns a list of contained tiles
+ * (directories) along with their associated metadata from the
+ * the SQLite database in output/. Results are returned down to
+ * a depth of 2 so that the visualization can show two levels
+ * of the pie chart at one time.
+ */
 var express = require('express');
 var sqlite3 = require('sqlite3');
 var async = require('async');
