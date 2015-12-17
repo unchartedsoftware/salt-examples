@@ -55,7 +55,9 @@
     var width = 960,
         height = 600,
         radius = Math.min(width, height) / 2 - 20,
-        color = d3.scale.category20c();
+        color = d3.scale.category20c(),
+        currentValueAttr = 'items',
+        firstTime = true;
 
     var container = d3.select('body').append('svg')
         .attr('width', width)
@@ -75,38 +77,61 @@
     var partition = d3.layout.partition()
         .sort(null)
         .size([2 * Math.PI, radius * radius])
-        .value(function(d) { return d.items; })
-
-
-    var currentValueAttr = 'items';
-    var currentPath;
+        .value(function(d) { return d[currentValueAttr]; })
 
     // Given new data, update the viz
     function updateData(root) {
-      currentPath = pie.datum(root).selectAll('path')
-          .data(partition.nodes, function(d) { return d._id; });
+      var currentPath = pie.datum(root).selectAll('path')
+          .data(partition.nodes, function(d) { return d.full_path; });
 
-      currentPath.enter()
+      // Transition color and arc
+      currentPath
+        .transition()
+          .delay(500)
+          .duration(1000)
+          .attrTween('d', arcTween)
+          .style('fill', function(d) { return color(d.full_path); })
+          .style('fill-opacity', function(d) { return d.depth ? 1 : 0.1; });
+
+      var newSlices = currentPath.enter()
         .append('path')
+
+      newSlices
           .attr('d', arc)
           .style('stroke', '#333')
-          .style('fill', function(d) {
-            if (d.depth) {
-              return color((d.children ? d : d.parent).filename);
-            } else {
-              return '#333';
-            }
-          })
+          .style('fill', function(d) { return color(d.full_path); })
+          .style('fill-opacity', function(d) { return d.depth ? 1 : 0.1; })
           .style('fill-rule', 'evenodd')
+          .style('opacity', 0)
           .on('click', onClick)
           .each(stash)
         .append('title')
           .text(function(d) {
             return d.filename;
-          });
-      currentPath.exit().remove();
+          })
 
-      var label = labelG.selectAll('text').data([root], function(d){ return d._id; });
+      // Fade in
+      if (firstTime) {
+        // No delay first time...
+        newSlices.transition()
+          .duration(500)
+          .style('opacity', 1)
+        firstTime = false;
+      } else {
+        newSlices.transition()
+          .delay(1500)
+          .duration(500)
+          .style('opacity', 1)
+      }
+
+      // Fade out
+      currentPath.exit().transition()
+        .duration(500)
+        .style('opacity', 0)
+        .remove();
+
+      // Add label to center
+      var label = labelG.selectAll('text').data([root], function(d){ return d.full_path; });
       label.enter().append("text")
         .attr('display', function(d) { return d.depth ? 'none' : null; }) // hide inner ring
         .style('fill', '#eee')
@@ -116,16 +141,12 @@
       label.exit().remove();
     }
 
-    // Change the currently viewd
+    // Change the currently viewed
     function changeSeries( valueAttr ) {
       currentValueAttr = valueAttr;
 
-      var valueFn = function(d) {
-        return d[valueAttr];
-      };
-
-      currentPath
-          .data(partition.value(valueFn).nodes, function(d) { return d._id; })
+      pie.selectAll('path')
+          .data(partition.nodes, function(d) { return d.full_path; })
         .transition()
           .duration(1500)
           .attrTween('d', arcTween);
@@ -146,33 +167,24 @@
       changeSeries(this.value);
     });
 
-    // Data request and manipulation
-    function addId(node) {
-      node._id = 'id:'+Math.random();
-      node.children && node.children.forEach(addId);
-    };
     function setRoot(path) {
       d3.json('data/'+path, function(error, root) {
         if (error) throw error;
-        addId(root);
-        updateData(root, currentValueAttr);
+        updateData(root);
       });
     }
 
     // Stash the old values for transition.
     function stash(d) {
-      d.x0 = d.x;
-      d.dx0 = d.dx;
+      this._current = d;
     }
 
     // Interpolate the arcs in data space.
     function arcTween(a) {
-      var i = d3.interpolate({x: a.x0, dx: a.dx0}, a);
+      var i = d3.interpolate({x: this._current.x, dx: this._current.dx, y: this._current.y, dy: this._current.dy}, a);
+      this._current = i(0);
       return function(t) {
-        var b = i(t);
-        a.x0 = b.x;
-        a.dx0 = b.dx;
-        return arc(b);
+        return arc(i(t));
       };
     }
 
