@@ -132,7 +132,7 @@
 
       // Add label to center
       var label = labelG.selectAll('text').data([root], function(d){ return d.full_path; });
-      label.enter().append("text")
+      label.enter().append('text')
         .attr('display', function(d) { return d.depth ? 'none' : null; }) // hide inner ring
         .style('fill', '#eee')
         .text(function(d) {
