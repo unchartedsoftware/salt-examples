@@ -14,13 +14,20 @@ var app = express();
 var db = new sqlite3.Database('../output/fs_stats.sqlite', sqlite3.OPEN_READONLY);
 
 function getData(dirname, done) {
-  if (dirname === '/') {
-    dirname = '';
+  // if (dirname === '/') {
+  //   dirname = '.';
+  // }
+  if (dirname[0] !== '.') {
+    dirname = '.'+dirname;
+  }
+  if (dirname[dirname.length-1] === '/') {
+    dirname = dirname.slice(0,dirname.length-1);
   }
   getChildren(dirname, 2, function(err, children) {
     var breakPt = dirname.lastIndexOf('/');
     var results = {
-      path: '.'+dirname.slice(0,breakPt),
+      full_path: dirname,
+      path: dirname.slice(0,breakPt),
       filename: dirname.slice(breakPt+1),
       children: children
     };
@@ -33,8 +40,7 @@ function getChildren(dirname, depth, done) {
     if (depth > 1) {
       // Plow down another level, for each child add children
       async.map(rows, function(item, cb) {
-        var path = item.path.slice(1) + '/' + item.filename;
-        getChildren(path, depth-1, function(err, rows) {
+        getChildren(item.full_path, depth-1, function(err, rows) {
           item.children = rows;
           cb(err, item);
         });
@@ -50,7 +56,7 @@ function getChildren(dirname, depth, done) {
 }
 
 function getRows(dirname, done) {
-  db.all("SELECT * FROM fs_stats WHERE path = '."+dirname+"'", function(err, rows) {
+  db.all("SELECT * FROM fs_stats WHERE path = '"+dirname+"'", function(err, rows) {
     done(err, rows);
   });
 }
