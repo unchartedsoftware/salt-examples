@@ -14,13 +14,13 @@ apply plugin: 'maven'
 apply plugin: 'idea'
 
 group = 'software.uncharted.salt'
-version = '1.0.0'
+version = '1.1.0'
 
 project.ext {
   scalaBinaryVersion = '2.10'
   scalaVersion = '2.10.4'
   sparkVersion = '1.4.0'
-  saltVersion = '1.0.0'
+  saltVersion = '1.1.0'
 }
 
 jar {

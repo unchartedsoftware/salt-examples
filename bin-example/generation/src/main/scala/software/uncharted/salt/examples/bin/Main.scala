@@ -25,7 +25,7 @@ object Main {
   val layerName = "pickups"
 
   // Creates and returns an Array of Double values encoded as 64bit Integers
-  def createByteBuffer(tile: SeriesData[(Int, Int, Int), java.lang.Double, (java.lang.Double, java.lang.Double)]): Array[Byte] = {
+  def createByteBuffer(tile: SeriesData[(Int, Int, Int), Double, (Double, Double)]): Array[Byte] = {
     val byteArray = new Array[Byte](tileSize * tileSize * 8)
     var j = 0
     tile.bins.foreach(b => {
