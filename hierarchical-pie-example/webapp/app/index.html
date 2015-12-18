@@ -1,0 +1,195 @@
+<!doctype html>
+<html>
+  <head>
+    <meta charset="utf-8">
+    <meta http-equiv="x-ua-compatible" content="ie=edge">
+    <title>Salt Hierarchical Pie Example</title>
+    <meta name="description" content="Example of using Salt to generate a visualization of heirarchical data">
+    <meta name="viewport" content="width=device-width, initial-scale=1">
+
+    <style>
+      body {
+        font-family: "Helvetica Neue", Helvetica, Arial, sans-serif;
+        margin: auto;
+        position: relative;
+        text-align:center;
+        color: #eee;
+        background-color: #333;
+      }
+
+      text {
+        font: 18px sans-serif;
+      }
+
+      form {
+        margin-top: 20px;
+        margin-bottom: 20px;
+      }
+      path {
+        opacity: 1;
+        cursor: pointer;
+      }
+      path:hover {
+        opacity: 0.5;
+      }
+    </style>
+
+  </head>
+
+  <body>
+    <div id="pie"></div>
+
+    <form>
+      <label><input type="radio" name="dataset" value="items" checked> Total Files</label>
+      <label><input type="radio" name="dataset" value="directory_items"> Directories</label>
+      <label><input type="radio" name="dataset" value="executable_items"> Executables</label>
+      <label><input type="radio" name="dataset" value="cumulative_size_bytes"> Size</label>
+    </form>
+  </body>
+
+  <script src="https://cdnjs.cloudflare.com/ajax/libs/d3/3.5.10/d3.min.js"></script>
+
+
+  <script>
+    //most of this is borrowed from a basic D3 example: http://bl.ocks.org/mbostock/4063423
+    var width = 960,
+        height = 600,
+        radius = Math.min(width, height) / 2 - 20,
+        color = d3.scale.category20c(),
+        currentValueAttr = 'items',
+        firstTime = true;
+
+    var container = d3.select('body').append('svg')
+        .attr('width', width)
+        .attr('height', height)
+      .append('g')
+        .attr('transform', 'translate(' + width / 2 + ',' + height * .52 + ')');
+
+    var pie = container.append('g');
+    var labelG = container.append('g');
+
+    var arc = d3.svg.arc()
+        .startAngle(function(d) { return d.x; })
+        .endAngle(function(d) { return d.x + d.dx; })
+        .innerRadius(function(d) { return Math.sqrt(d.y); })
+        .outerRadius(function(d) { return Math.sqrt(d.y + d.dy); });
+
+    var partition = d3.layout.partition()
+        .sort(null)
+        .size([2 * Math.PI, radius * radius])
+        .value(function(d) { return d[currentValueAttr]; })
+
+    // Given new data, update the viz
+    function updateData(root) {
+      var currentPath = pie.datum(root).selectAll('path')
+          .data(partition.nodes, function(d) { return d.full_path; });
+
+      // Transition color and arc
+      currentPath
+        .transition()
+          .delay(500)
+          .duration(1000)
+          .attrTween('d', arcTween)
+          .style('fill', function(d) { return color(d.full_path); })
+          .style('fill-opacity', function(d) { return d.depth ? 1 : 0.1; });
+
+      var newSlices = currentPath.enter()
+        .append('path')
+
+      newSlices
+          .attr('d', arc)
+          .style('stroke', '#333')
+          .style('fill', function(d) { return color(d.full_path); })
+          .style('fill-opacity', function(d) { return d.depth ? 1 : 0.1; })
+          .style('fill-rule', 'evenodd')
+          .style('opacity', 0)
+          .on('click', onClick)
+          .each(stash)
+        .append('title')
+          .text(function(d) {
+            return d.filename;
+          })
+
+      // Fade in
+      if (firstTime) {
+        // No delay first time...
+        newSlices.transition()
+          .duration(500)
+          .style('opacity', 1)
+        firstTime = false;
+      } else {
+        newSlices.transition()
+          .delay(1500)
+          .duration(500)
+          .style('opacity', 1)
+      }
+
+      // Fade out
+      currentPath.exit().transition()
+        .duration(500)
+        .style('opacity', 0)
+        .remove();
+
+      // Add label to center
+      var label = labelG.selectAll('text').data([root], function(d){ return d.full_path; });
+      label.enter().append('text')
+        .attr('display', function(d) { return d.depth ? 'none' : null; }) // hide inner ring
+        .style('fill', '#eee')
+        .text(function(d) {
+          return d.full_path;
+        })
+      label.exit().remove();
+    }
+
+    // Change the currently viewed
+    function changeSeries( valueAttr ) {
+      currentValueAttr = valueAttr;
+
+      pie.selectAll('path')
+          .data(partition.nodes, function(d) { return d.full_path; })
+        .transition()
+          .duration(1500)
+          .attrTween('d', arcTween);
+    };
+
+    // Event handlers
+    function onClick(e) {
+      if (e.depth) {
+        // Down a level
+        setRoot(e.full_path);
+      } else {
+        // Up a level
+        setRoot(e.path);
+      }
+    };
+
+    d3.selectAll('input').on('change', function change() {
+      changeSeries(this.value);
+    });
+
+    function setRoot(path) {
+      d3.json('data/'+path, function(error, root) {
+        if (error) throw error;
+        updateData(root);
+      });
+    }
+
+    // Stash the old values for transition.
+    function stash(d) {
+      this._current = d;
+    }
+
+    // Interpolate the arcs in data space.
+    function arcTween(a) {
+      var i = d3.interpolate({x: this._current.x, dx: this._current.dx, y: this._current.y, dy: this._current.dy}, a);
+      this._current = i(0);
+      return function(t) {
+        return arc(i(t));
+      };
+    }
+
+    d3.select(self.frameElement).style('height', height + 'px');
+
+    setRoot('.');
+  </script>
+</html>

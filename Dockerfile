@@ -11,6 +11,7 @@ MAINTAINER Sean McIntyre <smcintyre@uncharted.software>
 
 # Add sample data
 ADD http://assets.oculusinfo.com/salt/sample-data/taxi_one_day.csv /opt/data/taxi_one_day.csv
+ADD http://blog.uncharted.software/assets/ubuntu-filelist.csv /opt/data/ubuntu-filelist.csv
 
 # Mount point for source directories
 WORKDIR /opt/salt
