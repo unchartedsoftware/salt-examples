@@ -54,7 +54,7 @@ object Main {
   }
 
   // Creates and returns an Array of RGBA values encoded as 32bit integers
-  def createRGBABuffer(tile: SeriesData[(Int, Int, Int), java.lang.Double, (java.lang.Double, java.lang.Double)], min: Double, max: Double): Array[Int] = {
+  def createRGBABuffer(tile: SeriesData[(Int, Int, Int), Double, (Double, Double)], min: Double, max: Double): Array[Int] = {
     val rgbArray = new Array[Int](tileSize * tileSize)
     tile.bins.zipWithIndex.foreach(b => {
       val count = b._1
