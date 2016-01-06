@@ -156,21 +156,6 @@ object Main {
       }
     }
 
-    // Construct the definition of the tiling jobs: pickups and dropoffs
-    val pickups = new Series((tileSize-1, tileSize-1),
-      pickupExtractor,
-      new MercatorProjection(),
-      Some(pickupTimeExtractor),
-      TimeBucketAggregator,
-      None)
-
-    val dropoffs = new Series((tileSize-1, tileSize-1),
-      dropoffExtractor,
-      new MercatorProjection(),
-      Some(dropoffTimeExtractor),
-      TimeBucketAggregator,
-      None)
-
     // Tile Generator object, which houses the generation logic
     val gen = new MapReduceTileGenerator(sc)
 
@@ -180,6 +165,21 @@ object Main {
       println("------------------------------")
       println(s"Generating level $level")
       println("------------------------------")
+
+      // Construct the definition of the tiling jobs: pickups and dropoffs
+      val pickups = new Series((tileSize-1, tileSize-1),
+        pickupExtractor,
+        new MercatorProjection(level),
+        Some(pickupTimeExtractor),
+        TimeBucketAggregator,
+        None)
+
+      val dropoffs = new Series((tileSize-1, tileSize-1),
+        dropoffExtractor,
+        new MercatorProjection(level),
+        Some(dropoffTimeExtractor),
+        TimeBucketAggregator,
+        None)
 
       // Create a request for all tiles on these levels, generate
       val request = new TileLevelRequest(level, (coord: (Int,Int,Int)) => coord._1)
