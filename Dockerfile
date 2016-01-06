@@ -1,12 +1,12 @@
 #
 # Salt Example Container
-# Apache Spark 1.5.1
+# Apache Spark 1.6.0
 #
 # Build using:
 # $ docker build -t uncharted/salt-examples .
 #
 
-FROM uncharted/sparklet:1.5.1
+FROM uncharted/sparklet:1.6.0
 MAINTAINER Sean McIntyre <smcintyre@uncharted.software>
 
 # Add sample data

@@ -73,7 +73,7 @@ object Main {
     val sqlContext = new SQLContext(sc)
 
     // use our custom PathProjection
-    val projection = new PathProjection()
+    val projection = new PathProjection(MAX_TILING_DEPTH)
 
     // create Series for tracking cumulative bytes
     val pathExtractor = (r: Row) => {
@@ -126,14 +126,14 @@ object Main {
       sqlContext.read.format("com.databricks.spark.csv")
         .option("header", "true")
         .option("inferSchema", "true")
-        .load(s"file:// ${inputPath}")
+        .load(s"file://${inputPath}")
     })
     // convert to rdd
     .to(ops.core.dataframe.toRDD)
     // pipe to salt
     .to(rdd => {
       val gen = new MapReduceTileGenerator(sc)
-      gen.generate(rdd, Seq(sBytes, ssItems, sDirectories, sExecutables), new PathRequest(maxDepth = MAX_TILING_DEPTH))
+      gen.generate(rdd, Seq(sBytes, ssItems, sDirectories, sExecutables), new PathRequest())
     })
     // to simplify example, eliminate SQLite lock contention issue by collecting tiles to master
     .to(_.collect)
