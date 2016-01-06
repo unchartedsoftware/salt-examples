@@ -11,7 +11,7 @@ This example illustrates how to use Salt to generate bin file output. Salt featu
  - Saving results to local filesystem on Spark Master
 
 ## Building the Example
-To build the example you must first generate the PNG images data (written to the `output/` directory) and then run the web app to view the results.
+To build the example you must first generate the .bin tile data (written to the `output/` directory) and then run the web app to view the results.
 
 ### Tile Generation
 
