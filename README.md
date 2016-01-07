@@ -8,6 +8,8 @@
 
  - [torque-example](./torque-example) - illustrates using Salt to build TileJSON datasets compatible with [CartoDB's Torque](https://github.com/CartoDB/Torque) library.
 
+ - [path-example](./path-example) - similar to [bin-example](./bin-example), but illustrates rendering lines instead of points
+
  - [hierarchical-pie-example](./hierarchical-pie-example) - illustrates using Salt and D3.js to build a non-2D-spatial visualization of inherently hierarchical data
 
 ## Dependencies
