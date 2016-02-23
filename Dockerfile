@@ -13,7 +13,7 @@ MAINTAINER Sean McIntyre <smcintyre@uncharted.software>
 WORKDIR /opt/salt
 
 # for dev environment
-ENV GRADLE_OPTS -Dorg.gradle.daemon=true
+ENV GRADLE_OPTS -Dorg.gradle.native=false
 
 CMD ["./gradlew"]
 
