@@ -1,6 +1,6 @@
 {
   "name": "salt-png-example",
-  "version": "2.0.0",
+  "version": "2.0.1",
   "description": "Example of using Salt to generate PNG tiles",
   "private": true,
   "main": "server.js",

@@ -14,13 +14,13 @@ apply plugin: 'maven'
 apply plugin: 'idea'
 
 group = 'software.uncharted.salt'
-version = '2.0.0'
+version = '2.0.1'
 
 project.ext {
   scalaBinaryVersion = '2.10'
   scalaVersion = '2.10.4'
   sparkVersion = '1.4.0'
-  saltVersion = '2.0.0'
+  saltversion = '2.0.1'
 }
 
 jar {
@@ -66,7 +66,7 @@ dependencies {
 }
 
 task wrapper(type: Wrapper) {
-    gradleVersion = '2.6'
+    gradleVersion = '2.10'
 }
 
 task run(overwrite: true, type: Exec, dependsOn: [assemble]) {
