@@ -8,7 +8,7 @@ import org.apache.spark.sql.Row
 import software.uncharted.salt.core.projection.numeric._
 import software.uncharted.salt.core.generation.request._
 import software.uncharted.salt.core.generation.Series
-import software.uncharted.salt.core.generation.mapreduce.MapReduceTileGenerator
+import software.uncharted.salt.core.generation.TileGenerator
 import software.uncharted.salt.core.generation.output.SeriesData
 import software.uncharted.salt.core.analytic.numeric._
 
@@ -54,7 +54,7 @@ object Main {
   }
 
   // Creates and returns an Array of RGBA values encoded as 32bit integers
-  def createRGBABuffer(tile: SeriesData[(Int, Int, Int), Double, (Double, Double)], min: Double, max: Double): Array[Int] = {
+  def createRGBABuffer(tile: SeriesData[(Int, Int, Int), (Int, Int), Double, (Double, Double)], min: Double, max: Double): Array[Int] = {
     val rgbArray = new Array[Int](tileSize * tileSize)
     tile.bins.zipWithIndex.foreach(b => {
       val count = b._1
@@ -98,7 +98,7 @@ object Main {
     }
 
     // Tile Generator object, which houses the generation logic
-    val gen = new MapReduceTileGenerator(sc)
+    val gen = TileGenerator(sc)
 
     // Iterate over sets of levels to generate. Process several higher levels at once because the
     // number of tile outputs is quite low. Lower levels done individually due to high tile counts.
@@ -111,7 +111,7 @@ object Main {
       val pickups = new Series((tileSize - 1, tileSize - 1),
         pickupExtractor,
         new MercatorProjection(level),
-        None,
+        (r: Row) => Some(1),
         CountAggregator,
         Some(MinMaxAggregator))
 
@@ -123,7 +123,7 @@ object Main {
       // counts for each zoom level must be known.
       // Create map from each level to min / max values.
       val levelInfo = rdd
-        .map(s => pickups(s))
+        .map(s => pickups(s).get)
         .map(t => (t.coords._1, t.tileMeta.get))
         .reduceByKey((l, r) => {
           (Math.min(l._1, r._1), Math.max(l._2, r._2))
@@ -139,7 +139,7 @@ object Main {
         .mapPartitions(partition => {
           val levelInfo = bLevelInfo.value
           partition
-            .map(s => pickups(s))
+            .map(s => pickups(s).get)
             .map(tile => {
               val level = tile.coords._1
               val minMax = levelInfo(level)

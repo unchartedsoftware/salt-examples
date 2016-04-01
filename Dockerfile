@@ -1,12 +1,12 @@
 #
 # Salt Example Container
-# Apache Spark 1.6.0
+# Apache Spark 1.6.1
 #
 # Build using:
 # $ docker build -t uncharted/salt-examples .
 #
 
-FROM uncharted/sparklet:1.6.0
+FROM uncharted/sparklet:1.6.1
 MAINTAINER Sean McIntyre <smcintyre@uncharted.software>
 
 # Mount point for source directories

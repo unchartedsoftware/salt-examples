@@ -8,7 +8,7 @@ import org.apache.spark.sql.Row
 import software.uncharted.salt.core.projection.numeric._
 import software.uncharted.salt.core.generation.request._
 import software.uncharted.salt.core.generation.Series
-import software.uncharted.salt.core.generation.mapreduce.MapReduceTileGenerator
+import software.uncharted.salt.core.generation.TileGenerator
 import software.uncharted.salt.core.generation.output.SeriesData
 import software.uncharted.salt.core.analytic.Aggregator
 
@@ -62,7 +62,7 @@ object Main {
 
   // Given a SeriesData object with bins of List((time,count)) create a TileJSON object
   // to the spec given here: https://github.com/CartoDB/tilecubes/blob/master/2.0/spec.md
-  def createTileJSON(seriesData: SeriesData[(Int,Int,Int),_,_]) = {
+  def createTileJSON(seriesData: SeriesData[(Int,Int,Int),(Int, Int),_,_]) = {
     val bins = seriesData.bins.zipWithIndex.flatMap(x => {
       val data = x._1.asInstanceOf[List[(Int,Int)]]
       // Only create records for bins with data
@@ -157,7 +157,7 @@ object Main {
     }
 
     // Tile Generator object, which houses the generation logic
-    val gen = new MapReduceTileGenerator(sc)
+    val gen = TileGenerator(sc)
 
     // Iterate over sets of levels to generate. Process several higher levels at once because the
     // number of tile outputs is quite low. Lower levels done individually due to high tile counts.
@@ -170,14 +170,14 @@ object Main {
       val pickups = new Series((tileSize-1, tileSize-1),
         pickupExtractor,
         new MercatorProjection(level),
-        Some(pickupTimeExtractor),
+        pickupTimeExtractor,
         TimeBucketAggregator,
         None)
 
       val dropoffs = new Series((tileSize-1, tileSize-1),
         dropoffExtractor,
         new MercatorProjection(level),
-        Some(dropoffTimeExtractor),
+        dropoffTimeExtractor,
         TimeBucketAggregator,
         None)
 
@@ -187,7 +187,7 @@ object Main {
 
       // Translate RDD of Tiles to RDD of (coordinate,pickupsJSON,dropoffsJSON), collect to master for serialization
       val output = result.map(t => {
-        (t.coords, createTileJSON(pickups(t)).toString(), createTileJSON(dropoffs(t)).toString())
+        (t.coords, createTileJSON(pickups(t).get).toString(), createTileJSON(dropoffs(t).get).toString())
       }).collect()
 
       // Save JSON to local filesystem

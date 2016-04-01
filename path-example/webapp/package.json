@@ -1,6 +1,6 @@
 {
   "name": "salt-path-example",
-  "version": "2.0.1",
+  "version": "3.0.0",
   "description": "Example of using Salt to generate binary tiles display paths",
   "private": true,
   "main": "server.js",
