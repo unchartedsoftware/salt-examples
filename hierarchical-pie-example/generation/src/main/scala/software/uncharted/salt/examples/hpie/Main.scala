@@ -22,7 +22,7 @@ import scala.collection.mutable.ArrayBuffer
 
 object Main {
 
-  val MAX_TILING_DEPTH = 10 //how many directories deep should we allow the visualization to go?
+  val MAX_TILING_DEPTH = 6 //how many directories deep should we allow the visualization to go?
   val INSERT_BATCH_SIZE = 1000 //batch insert size for SQLite. Probably don't need to change this.
 
   /*
