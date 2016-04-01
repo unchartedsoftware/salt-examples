@@ -23,7 +23,7 @@ import org.apache.spark.sql.Row
 
 import software.uncharted.salt.core.generation.request._
 import software.uncharted.salt.core.generation.Series
-import software.uncharted.salt.core.generation.mapreduce.MapReduceTileGenerator
+import software.uncharted.salt.core.generation.TileGenerator
 import software.uncharted.salt.core.generation.output.SeriesData
 import software.uncharted.salt.core.analytic.numeric._
 
@@ -40,7 +40,7 @@ object Main {
   val layerName = "paths"
 
   // Creates and returns an Array of Double values encoded as 64bit Integers
-  def createByteBuffer(tile: SeriesData[(Int, Int, Int), Double, (Double, Double)]): Array[Byte] = {
+  def createByteBuffer(tile: SeriesData[(Int, Int, Int), (Int, Int), Double, (Double, Double)]): Array[Byte] = {
     val byteArray = new Array[Byte](tileSize * tileSize * 8)
     var j = 0
     tile.bins.foreach(b => {
@@ -87,7 +87,7 @@ object Main {
     }
 
     // Tile Generator object, which houses the generation logic
-    val gen = new MapReduceTileGenerator(sc)
+    val gen = TileGenerator(sc)
 
     // Break levels into batches. Process several higher levels at once because the
     // number of tile outputs is quite low. Lower levels done individually due to high tile counts.
@@ -104,7 +104,7 @@ object Main {
       val paths = new Series((tileSize - 1, tileSize - 1),
         pathExtractor,
         new MercatorLineProjection(1024, level),
-        None,
+        (r: Row) => Some(1),
         CountAggregator,
         Some(MinMaxAggregator))
 
@@ -114,7 +114,7 @@ object Main {
 
       // Translate RDD of Tiles to RDD of (coordinate,byte array), collect to master for serialization
       val output = rdd
-        .map(s => paths(s))
+        .map(s => paths(s).get)
         .map(tile => {
           // Return tuples of tile coordinate, byte array
           (tile.coords, createByteBuffer(tile))
@@ -136,7 +136,7 @@ object Main {
 
       // Create map from each level to min / max values.
       rdd
-        .map(s => paths(s))
+        .map(s => paths(s).get)
         .map(t => (t.coords._1.toString, t.tileMeta.get))
         .reduceByKey((l, r) => {
           (Math.min(l._1, r._1), Math.max(l._2, r._2))

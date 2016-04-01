@@ -10,7 +10,7 @@ import java.sql.{Connection,DriverManager,Statement};
 
 import software.uncharted.salt.core.generation.request._
 import software.uncharted.salt.core.generation.Series
-import software.uncharted.salt.core.generation.mapreduce.MapReduceTileGenerator
+import software.uncharted.salt.core.generation.TileGenerator
 import software.uncharted.salt.core.generation.output.Tile
 import software.uncharted.salt.core.generation.output.SeriesData
 import software.uncharted.salt.core.analytic.numeric.{SumAggregator, CountAggregator}
@@ -92,9 +92,9 @@ object Main {
         Some(r.getLong(fieldIndex).toDouble)
       }
     }
-    val sBytes = new Series(0, pathExtractor, projection, Some(bytesExtractor), SumAggregator, None)
+    val sBytes = new Series(0, pathExtractor, projection, bytesExtractor, SumAggregator, None)
     // create Series for tracking total items
-    val ssItems = new Series(0, pathExtractor, projection, None, CountAggregator, None)
+    val ssItems = new Series(0, pathExtractor, projection, (r: Row) => Some(1), CountAggregator, None)
     // create Series for tracking total directory items
     val dirChildExtractor = (r: Row) => {
       val fieldIndex = r.fieldIndex("permissions_string")
@@ -106,7 +106,7 @@ object Main {
         Some(0D)
       }
     }
-    val sDirectories = new Series(0, pathExtractor, projection, Some(dirChildExtractor), SumAggregator, None)
+    val sDirectories = new Series(0, pathExtractor, projection, dirChildExtractor, SumAggregator, None)
     // create Series for tracking total executable items
     val exChildExtractor = (r: Row) => {
       val fieldIndex = r.fieldIndex("permissions_string")
@@ -118,7 +118,7 @@ object Main {
         Some(0D)
       }
     }
-    val sExecutables = new Series(0, pathExtractor, projection, Some(exChildExtractor), SumAggregator, None)
+    val sExecutables = new Series(0, pathExtractor, projection, exChildExtractor, SumAggregator, None)
 
     // using the Uncharted Spark Pipeline for ETL
     val inputDataPipe = Pipe(() => {
@@ -132,7 +132,7 @@ object Main {
     .to(ops.core.dataframe.toRDD)
     // pipe to salt
     .to(rdd => {
-      val gen = new MapReduceTileGenerator(sc)
+      val gen = TileGenerator(sc)
       gen.generate(rdd, Seq(sBytes, ssItems, sDirectories, sExecutables), new PathRequest())
     })
     // to simplify example, eliminate SQLite lock contention issue by collecting tiles to master
@@ -150,10 +150,10 @@ object Main {
           stmt.setString(2, tile.coords)
           stmt.setString(3, tile.coords.substring(tile.coords.lastIndexOf("/")+1))
           stmt.setInt(4, tile.coords.split("/").length - 1)
-          stmt.setInt(5, sBytes(tile).bins(0).toInt)
-          stmt.setInt(6, ssItems(tile).bins(0).toInt)
-          stmt.setInt(7, sDirectories(tile).bins(0).toInt)
-          stmt.setInt(8, sExecutables(tile).bins(0).toInt)
+          stmt.setInt(5, sBytes(tile).get.bins(0).toInt)
+          stmt.setInt(6, ssItems(tile).get.bins(0).toInt)
+          stmt.setInt(7, sDirectories(tile).get.bins(0).toInt)
+          stmt.setInt(8, sExecutables(tile).get.bins(0).toInt)
           stmt.addBatch()
           i+=1
           if (i % INSERT_BATCH_SIZE == 0 || i == tiles.length) {
