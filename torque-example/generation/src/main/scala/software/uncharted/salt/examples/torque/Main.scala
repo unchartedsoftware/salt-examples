@@ -2,6 +2,7 @@ package software.uncharted.salt.examples.torque
 
 import org.apache.spark.SparkContext
 import org.apache.spark.SparkConf
+import org.apache.spark.sql.SparkSession
 import org.apache.spark.sql.SQLContext
 import org.apache.spark.sql.Row
 
@@ -103,19 +104,18 @@ object Main {
     val inputPath = args(0)
     val outputPath = args(1)
 
-    val conf = new SparkConf().setAppName("salt-torque-example")
-    val sc = new SparkContext(conf)
-    val sqlContext = new SQLContext(sc)
+    val sparkSession = SparkSession.builder().appName("salt-torque-example").getOrCreate()
+    val sc = sparkSession.sparkContext
 
-    sqlContext.read.format("com.databricks.spark.csv")
+    sparkSession.read.format("com.databricks.spark.csv")
       .option("header", "true")
       .option("inferSchema", "true")
       .load(s"file://$inputPath")
-      .registerTempTable("taxi_micro")
+      .createOrReplaceTempView("taxi_micro")
 
     // Construct an RDD of Rows containing only the fields we need. Cache the result
     // (must cast a few incorrectly detected columns to double)
-    val input = sqlContext.sql("select pickup_lon, pickup_lat, CAST(dropoff_lon as double), CAST(dropoff_lat as double), CAST(pickup_time as TIMESTAMP), CAST(dropoff_time as TIMESTAMP) from taxi_micro")
+    val input = sparkSession.sql("select pickup_lon, pickup_lat, CAST(dropoff_lon as double), CAST(dropoff_lat as double), CAST(pickup_time as TIMESTAMP), CAST(dropoff_time as TIMESTAMP) from taxi_micro")
       .rdd.cache()
 
     // Given an input row, return pickup longitude, latitude as a tuple
