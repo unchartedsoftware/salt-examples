@@ -84,7 +84,7 @@ dependencies {
   compile "software.uncharted.salt:salt-core:${saltVersion}"
 
   //scala
-  provided("org.scala-lang:scala-library:${scalaVersion}")
+  provided "org.scala-lang:scala-library:${scalaVersion}"
 
   //spark
   provided "org.apache.spark:spark-core_${scalaBinaryVersion}:${sparkVersion}"

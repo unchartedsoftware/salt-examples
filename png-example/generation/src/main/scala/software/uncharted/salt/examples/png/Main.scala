@@ -75,7 +75,7 @@ object Main {
     val inputPath = args(0)
     val outputPath = args(1)
 
-    val sparkSession = SparkSession.builder().appName("salt-png-example").getOrCreate()
+    val sparkSession = SparkSession.builder.appName("salt-png-example").getOrCreate()
     val sc = sparkSession.sparkContext
 
     sparkSession.read.format("com.databricks.spark.csv")
