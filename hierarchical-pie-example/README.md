@@ -16,26 +16,23 @@ $ find . -printf \"%p\",\"%m\",\"%M\",\"%s\",\"%u\",\"%U\"\\n
 ```
 
 ## Building the Example
+
 To build the example you must first generate the SQLite data (written to the `output/` directory) and then run the web app to view the results.
 
 ### Tile Generation
 
-Tile generation is done using the code in the `generation/` directory. If you plan on using the included Docker container to run the example, ensure that it's built before continuing (see [root README](../README.md)).
+Tile generation is done using the code in the `generation/` directory.
 
-Build the JAR and generate tiles in one command
+To generate, run:
 ```
-salt-examples/hierarchical-pie-example/ $ docker run --rm -v /$(pwd)/output:/opt/output -v /$(pwd)/generation:/opt/salt uncharted/salt-examples
-```
-
-To run the container interactively, run:
-```
-salt-examples/hierarchical-pie-example/ $ docker run -it -v /$(pwd)/output:/opt/output -v /$(pwd)/generation:/opt/salt uncharted/salt-examples bash
+salt-examples/heirarchical-pie-example/ $ ./gradlew
 ```
 
 ### Viewing Results
 
 Results are viewed through a simple web app contained in `webapp/`. After generating tiles, run from `webapp/`:
 
+**Note:** Because this webapp relies on [sqlite3 npm package](https://www.npmjs.com/package/sqlite3), it will only work with node versions **5.x and lower** .
 ```
 npm install
 npm start
