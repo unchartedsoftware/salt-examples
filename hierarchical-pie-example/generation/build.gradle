@@ -23,10 +23,10 @@ project.ext {
   dataSource = "http://assets.oculusinfo.com/salt/sample-data/${dataFile}"
 }
 
-apply plugin: 'java'
-apply plugin: 'scala'
-apply plugin: 'maven'
 apply plugin: 'idea'
+apply plugin: 'java'
+apply plugin: 'maven'
+apply plugin: 'scala'
 
 sourceCompatibility = 1.7
 targetCompatibility = 1.7
@@ -79,7 +79,7 @@ task downloadData(overwrite: true, type: Exec) {
 
 task run(overwrite: true, type: Exec, dependsOn: [startTestEnv, createDataDirectory, downloadData, assemble]) {
   executable = 'docker'
-  args = ["exec", project.name, "spark-submit", "--class","software.uncharted.salt.examples.hpie.Main","/opt/salt/build/libs/salt-hierarchical-pie-example-${version}.jar", "/opt/data/${dataFile}", "/opt/output"]
+  args = ["exec", project.name, "spark-submit", "--class", "software.uncharted.salt.examples.hpie.Main", "/opt/salt/build/libs/salt-hierarchical-pie-example-${version}.jar", "/opt/data/${dataFile}", "/opt/output"]
 }
 
 dependencies {

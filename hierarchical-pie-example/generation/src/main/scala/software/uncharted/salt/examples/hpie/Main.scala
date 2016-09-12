@@ -68,7 +68,7 @@ object Main {
     initDatabase(outputPath)
 
     // spark setup
-    val sparkSession = SparkSession.builder().appName("salt-hierarchical-pie-example").getOrCreate()
+    val sparkSession = SparkSession.builder.master("local[*]").appName("salt-hierarchical-pie-example").getOrCreate()
     val sc = sparkSession.sparkContext
 
     // use our custom PathProjection
