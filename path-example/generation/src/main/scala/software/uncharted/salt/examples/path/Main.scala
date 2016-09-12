@@ -16,9 +16,7 @@
 
 package software.uncharted.salt.examples.path
 
-import org.apache.spark.SparkContext
-import org.apache.spark.SparkConf
-import org.apache.spark.sql.SQLContext
+import org.apache.spark.sql.SparkSession
 import org.apache.spark.sql.Row
 
 import software.uncharted.salt.core.generation.request._
@@ -62,19 +60,18 @@ object Main {
     val inputPath = args(0)
     val outputPath = args(1)
 
-    val conf = new SparkConf().setAppName("salt-path-example")
-    val sc = new SparkContext(conf)
-    val sqlContext = new SQLContext(sc)
+    val sparkSession = SparkSession.builder.appName("salt-path-example").getOrCreate()
+    val sc = sparkSession.sparkContext
 
-    sqlContext.read.format("com.databricks.spark.csv")
+    sparkSession.read.format("com.databricks.spark.csv")
       .option("header", "true")
       .option("inferSchema", "true")
       .load(s"file://$inputPath")
       .sample(false,  0.25) //sample only 25% of the data so that the demo works on a laptop
-      .registerTempTable("taxi_micro")
+      .createOrReplaceTempView("taxi_micro")
 
     // Construct an RDD of Rows containing only the fields we need. Cache the result
-    val input = sqlContext.sql("select pickup_lon, pickup_lat, cast(dropoff_lon as double), cast(dropoff_lat as double) from taxi_micro")
+    val input = sparkSession.sql("select pickup_lon, pickup_lat, cast(dropoff_lon as double), cast(dropoff_lat as double) from taxi_micro")
       .rdd.cache()
 
     // Given an input row, return pickup lon/lat and dropoff lon/lat as a tuple

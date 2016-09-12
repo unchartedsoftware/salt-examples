@@ -18,7 +18,6 @@ package software.uncharted.salt.examples.path
 
 import software.uncharted.salt.core.projection.Projection
 import software.uncharted.salt.core.projection.numeric.MercatorProjection
-import org.apache.spark.sql.Row
 import scala.collection.mutable.ArrayBuffer
 
 /**
