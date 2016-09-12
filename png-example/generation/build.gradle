@@ -8,19 +8,35 @@
  * TODO integrate https://github.com/kt3k/coveralls-gradle-plugin
  */
 
+group = 'software.uncharted.salt'
+version = '4.0.0'
+
+project.ext {
+  scalaBinaryVersion = '2.11'
+  scalaVersion = '2.11.8'
+  sparkVersion = '2.0.0'
+  saltVersion = '4.0.0'
+  sparkCsvVersion = '1.0.3'
+  dataFile = "taxi_one_day.csv"
+  dataSource = "http://assets.oculusinfo.com/salt/sample-data/${dataFile}"
+}
+
 apply plugin: 'java'
 apply plugin: 'scala'
 apply plugin: 'maven'
 apply plugin: 'idea'
 
-group = 'software.uncharted.salt'
-version = '3.0.0'
+sourceCompatibility = 1.7
+targetCompatibility = 1.7
 
-project.ext {
-  scalaBinaryVersion = '2.10'
-  scalaVersion = '2.10.4'
-  sparkVersion = '1.6.1'
-  saltVersion = '3.0.0'
+repositories {
+  mavenLocal()
+  mavenCentral()
+}
+
+configurations {
+  provided
+  compile.extendsFrom provided
 }
 
 jar {
@@ -38,40 +54,48 @@ jar {
   }
 }
 
-sourceCompatibility = 1.7
-targetCompatibility = 1.7
-
-repositories {
-    mavenLocal()
-    mavenCentral()
+task startTestEnv(overwrite: true, type: Exec) {
+  executable = './../../generation-environment.sh'
+  args = [project.name]
 }
 
-configurations {
-    provided
-    compile.extendsFrom provided
+task stopTestEnv(overwrite: true, type: Exec) {
+  executable = './../../generation-environment.sh'
+  args = ["stop", project.name]
+}
+
+task createDataDirectory(overwrite: true, type: Exec) {
+  executable = 'docker'
+  args = ["exec", project.name, "mkdir", "-p", "/opt/data"]
+}
+
+task downloadData(overwrite: true, type: Exec) {
+  ignoreExitValue = true
+  executable = 'docker'
+  args = ["exec", project.name, "wget", "-P", "/opt/data", "${dataSource}"]
+}
+
+task run(overwrite: true, type: Exec, dependsOn: [startTestEnv, createDataDirectory, downloadData, assemble]) {
+  executable = 'docker'
+  args = ["exec", project.name, "spark-submit", "--class","software.uncharted.salt.examples.png.Main","/opt/salt/build/libs/salt-png-example-${version}.jar", "/opt/data/${dataFile}", "/opt/output"]
 }
 
 dependencies {
-    compile "software.uncharted.salt:salt-core:${saltVersion}"
+  compile "software.uncharted.salt:salt-core:${saltVersion}"
 
-    //scala
-    provided("org.scala-lang:scala-library:${scalaVersion}")
+  //scala
+  provided "org.scala-lang:scala-library:${scalaVersion}"
 
-    //spark
-    provided "org.apache.spark:spark-core_${scalaBinaryVersion}:${sparkVersion}"
-    provided "org.apache.spark:spark-sql_${scalaBinaryVersion}:${sparkVersion}"
-    provided "org.scala-lang:scala-library:$scalaBinaryVersion"
+  //spark
+  provided "org.apache.spark:spark-core_${scalaBinaryVersion}:${sparkVersion}"
+  provided "org.apache.spark:spark-sql_${scalaBinaryVersion}:${sparkVersion}"
+  provided "org.scala-lang:scala-library:${scalaBinaryVersion}"
 
-    compile "com.databricks:spark-csv_2.10:1.2.0"
+  compile "com.databricks:spark-csv_${scalaBinaryVersion}:${sparkCsvVersion}"
 }
 
 task wrapper(type: Wrapper) {
-    gradleVersion = '2.10'
-}
-
-task run(overwrite: true, type: Exec, dependsOn: [assemble]) {
-  executable = 'spark-submit'
-  args = ["--class","software.uncharted.salt.examples.png.Main","/opt/salt/build/libs/salt-png-example-${version}.jar", "/opt/data/taxi_one_day.csv", "/opt/output"]
+  gradleVersion = '2.13'
 }
 
 idea {
@@ -80,5 +104,8 @@ idea {
         outputDir = file("$buildDir/classes/main/")
     }
 }
+
+createDataDirectory.mustRunAfter startTestEnv
+downloadData.mustRunAfter createDataDirectory
 
 defaultTasks 'run'
