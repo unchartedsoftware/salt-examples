@@ -19,6 +19,11 @@ salt-examples/path-example/ $ ./gradlew
 
 Make sure you have a fair bit of available RAM on your docker host for this example (4+GB), or it will run out of memory.
 
+Note, you can now remove the resulting docker container by running:
+```
+salt-examples/path-example/ $ ./gradlew removeGenEnv
+```
+
 ### Viewing Results
 
 Results are viewed through a simple web app contained in `webapp/`. After generating tiles, run from `webapp/`:

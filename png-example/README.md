@@ -23,6 +23,10 @@ To generate, run:
 salt-examples/png-example/ $ ./gradlew
 ```
 
+Note, you can now remove the resulting docker container by running:
+```
+salt-examples/png-example/ $ ./gradlew removeGenEnv
+```
 
 ### Viewing Results
 

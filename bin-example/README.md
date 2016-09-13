@@ -23,6 +23,11 @@ To generate, run:
 salt-examples/bin-example/ $ ./gradlew
 ```
 
+Note, you can now remove the resulting docker container by running:
+```
+salt-examples/bin-example/ $ ./gradlew removeGenEnv
+```
+
 ### Viewing Results
 
 Results are viewed through a simple web app contained in `webapp/`. After generating tiles, run from `webapp/`:

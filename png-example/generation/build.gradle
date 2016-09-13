@@ -54,14 +54,19 @@ jar {
   }
 }
 
-task startTestEnv(overwrite: true, type: Exec) {
+task startGenEnv(overwrite: true, type: Exec) {
   executable = './../../generation-environment.sh'
   args = [project.name]
 }
 
-task stopTestEnv(overwrite: true, type: Exec) {
+task stopGenEnv(overwrite: true, type: Exec) {
   executable = './../../generation-environment.sh'
   args = ["stop", project.name]
+}
+
+task removeGenEnv(overwrite: true, type: Exec) {
+  executable = './../../generation-environment.sh'
+  args = ["rm", project.name]
 }
 
 task createDataDirectory(overwrite: true, type: Exec) {
@@ -75,7 +80,7 @@ task downloadData(overwrite: true, type: Exec) {
   args = ["exec", project.name, "wget", "-P", "/opt/data", "${dataSource}"]
 }
 
-task run(overwrite: true, type: Exec, dependsOn: [startTestEnv, createDataDirectory, downloadData, assemble]) {
+task run(overwrite: true, type: Exec, dependsOn: [startGenEnv, createDataDirectory, downloadData, assemble]) {
   executable = 'docker'
   args = ["exec", project.name, "spark-submit", "--class","software.uncharted.salt.examples.png.Main","/opt/salt/build/libs/salt-png-example-${version}.jar", "/opt/data/${dataFile}", "/opt/output"]
 }
@@ -105,7 +110,7 @@ idea {
     }
 }
 
-createDataDirectory.mustRunAfter startTestEnv
+createDataDirectory.mustRunAfter startGenEnv
 downloadData.mustRunAfter createDataDirectory
 
 defaultTasks 'run'
