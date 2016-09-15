@@ -21,6 +21,7 @@ project.ext {
   dataSource = "http://assets.oculusinfo.com/salt/sample-data/${dataFile}"
 }
 
+apply from: '../../root.gradle'
 apply plugin: 'java'
 apply plugin: 'scala'
 apply plugin: 'maven'
@@ -52,21 +53,6 @@ jar {
     exclude "META-INF/*.DSA"
     exclude "META-INF/*.RSA"
   }
-}
-
-task startGenEnv(overwrite: true, type: Exec) {
-  executable = './../../generation-environment.sh'
-  args = [project.name]
-}
-
-task stopGenEnv(overwrite: true, type: Exec) {
-  executable = './../../generation-environment.sh'
-  args = ["stop", project.name]
-}
-
-task cleanGenEnv(overwrite: true, type: Exec) {
-  executable = './../../generation-environment.sh'
-  args = ["rm", project.name]
 }
 
 task createDataDirectory(overwrite: true, type: Exec) {
