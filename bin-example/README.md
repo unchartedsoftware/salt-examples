@@ -25,7 +25,7 @@ salt-examples/bin-example/ $ ./gradlew
 
 Note, you can now remove the resulting docker container by running:
 ```
-salt-examples/bin-example/ $ ./gradlew removeGenEnv
+salt-examples/bin-example/ $ ./gradlew cleanGenEnv
 ```
 
 ### Viewing Results

@@ -21,7 +21,7 @@ Make sure you have a fair bit of available RAM on your docker host for this exam
 
 Note, you can now remove the resulting docker container by running:
 ```
-salt-examples/path-example/ $ ./gradlew removeGenEnv
+salt-examples/path-example/ $ ./gradlew cleanGenEnv
 ```
 
 ### Viewing Results

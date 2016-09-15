@@ -30,7 +30,7 @@ salt-examples/heirarchical-pie-example/ $ ./gradlew
 
 Note, you can now remove the resulting docker container by running:
 ```
-salt-examples/heirarchical-pie-example/ $ ./gradlew removeGenEnv
+salt-examples/heirarchical-pie-example/ $ ./gradlew cleanGenEnv
 ```
 
 ### Viewing Results

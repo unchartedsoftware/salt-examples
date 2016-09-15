@@ -25,7 +25,7 @@ salt-examples/torque-example/ $ ./gradlew
 
 Note, you can now remove the resulting docker container by running:
 ```
-salt-examples/torque-example/ $ ./gradlew removeGenEnv
+salt-examples/torque-example/ $ ./gradlew cleanGenEnv
 ```
 
 ### Viewing Results
