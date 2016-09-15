@@ -12,3 +12,8 @@ task cleanGenEnv(overwrite: true, type: Exec) {
   executable = './../../generation-environment.sh'
   args = ["rm", project.name]
 }
+
+task cleanOutput(overwrite: true, type: Exec) {
+  executable = 'rm'
+  args = ["-r", "../output"]
+}
