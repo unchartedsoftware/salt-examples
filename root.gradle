@@ -17,3 +17,14 @@ task cleanOutput(overwrite: true, type: Exec) {
   executable = 'rm'
   args = ["-r", "../output"]
 }
+
+task createDataDirectory(overwrite: true, type: Exec) {
+  executable = 'docker'
+  args = ["exec", project.name, "mkdir", "-p", "/opt/data"]
+}
+
+task downloadData(overwrite: true, type: Exec) {
+  ignoreExitValue = true
+  executable = 'docker'
+  args = ["exec", project.name, "wget", "-P", "/opt/data", "${dataSource}"]
+}

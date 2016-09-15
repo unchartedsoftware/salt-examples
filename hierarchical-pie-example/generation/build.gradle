@@ -57,17 +57,6 @@ jar {
   }
 }
 
-task createDataDirectory(overwrite: true, type: Exec) {
-  executable = 'docker'
-  args = ["exec", project.name, "mkdir", "-p", "/opt/data"]
-}
-
-task downloadData(overwrite: true, type: Exec) {
-  ignoreExitValue = true
-  executable = 'docker'
-  args = ["exec", project.name, "wget", "-P", "/opt/data", "${dataSource}"]
-}
-
 task run(overwrite: true, type: Exec, dependsOn: [startGenEnv, createDataDirectory, downloadData, assemble]) {
   executable = 'docker'
   args = ["exec", project.name, "spark-submit", "--class", "software.uncharted.salt.examples.hpie.Main", "/opt/salt/build/libs/salt-hierarchical-pie-example-${version}.jar", "/opt/data/${dataFile}", "/opt/output"]
