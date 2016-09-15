@@ -36,3 +36,12 @@ cd -
 ```
 
 The application will be available at http://localhost:3000/
+
+### Cleanup
+
+You can remove the generated data by running:
+```
+cd generation/
+./gradlew cleanOutput
+cd -
+```
