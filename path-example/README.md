@@ -10,27 +10,25 @@ To build the example you must first generate the .bin tile data (written to the 
 
 ### Tile Generation
 
-Tile generation is done using the code in the `generation/` directory.
-
-To generate, run:
+First, we need to generate the tiles with the following commands:
 ```
-salt-examples/path-example/ $ ./gradlew
+cd generation/
+./gradlew
+./gradlew clean cleanGenEnv # clean up build environment
+cd -
 ```
 
 Make sure you have a fair bit of available RAM on your docker host for this example (4+GB), or it will run out of memory.
 
-Note, you can now remove the resulting docker container by running:
-```
-salt-examples/path-example/ $ ./gradlew cleanGenEnv
-```
-
 ### Viewing Results
 
-Results are viewed through a simple web app contained in `webapp/`. After generating tiles, run from `webapp/`:
+Results are viewed through a simple web app contained in `webapp/`. After generating tiles, run:
 
 ```
+cd webapp
 npm install
 npm start
+cd -
 ```
 
 The application will be available at http://localhost:3000/

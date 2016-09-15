@@ -21,26 +21,25 @@ To build the example you must first generate the SQLite data (written to the `ou
 
 ### Tile Generation
 
-Tile generation is done using the code in the `generation/` directory.
-
-To generate, run:
+First, we need to generate the tiles with the following commands:
 ```
-salt-examples/heirarchical-pie-example/ $ ./gradlew
-```
-
-Note, you can now remove the resulting docker container by running:
-```
-salt-examples/heirarchical-pie-example/ $ ./gradlew cleanGenEnv
+cd generation/
+./gradlew
+./gradlew clean cleanGenEnv # clean up build environment
+cd -
 ```
 
 ### Viewing Results
 
-Results are viewed through a simple web app contained in `webapp/`. After generating tiles, run from `webapp/`:
+Results are viewed through a simple web app contained in `webapp/`. After generating tiles, run:
 
 **Note:** Because this webapp relies on [sqlite3 npm package](https://www.npmjs.com/package/sqlite3), it will only work with node versions **5.x and lower** .
 ```
+cd webapp
 npm install
 npm start
+cd -
 ```
+
 
 The application will be available at http://localhost:3000/
