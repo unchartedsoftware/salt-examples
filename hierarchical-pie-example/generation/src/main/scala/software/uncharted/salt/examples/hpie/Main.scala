@@ -2,8 +2,8 @@ package software.uncharted.salt.examples.hpie
 
 import org.apache.spark.SparkContext
 import org.apache.spark.SparkConf
+import org.apache.spark.sql.SparkSession
 import org.apache.spark.rdd.RDD
-import org.apache.spark.sql.SQLContext
 import org.apache.spark.sql.Row
 
 import java.sql.{Connection,DriverManager,Statement};
@@ -68,9 +68,8 @@ object Main {
     initDatabase(outputPath)
 
     // spark setup
-    val conf = new SparkConf().setAppName("salt-hierarchical-pie-example")
-    val sc = new SparkContext(conf)
-    val sqlContext = new SQLContext(sc)
+    val sparkSession = SparkSession.builder.master("local[*]").appName("salt-hierarchical-pie-example").getOrCreate()
+    val sc = sparkSession.sparkContext
 
     // use our custom PathProjection
     val projection = new PathProjection(MAX_TILING_DEPTH)
@@ -123,7 +122,7 @@ object Main {
     // using the Uncharted Spark Pipeline for ETL
     val inputDataPipe = Pipe(() => {
       // load source data
-      sqlContext.read.format("com.databricks.spark.csv")
+      sparkSession.read.format("com.databricks.spark.csv")
         .option("header", "true")
         .option("inferSchema", "true")
         .load(s"file://${inputPath}")

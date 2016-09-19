@@ -8,19 +8,38 @@
  * TODO integrate https://github.com/kt3k/coveralls-gradle-plugin
  */
 
-apply plugin: 'java'
-apply plugin: 'scala'
-apply plugin: 'maven'
-apply plugin: 'idea'
-
 group = 'software.uncharted.salt'
-version = '3.0.0'
+version = '4.0.0'
 
 project.ext {
-  scalaBinaryVersion = '2.10'
-  scalaVersion = '2.10.4'
-  sparkVersion = '1.6.1'
-  saltVersion = '3.0.0'
+  scalaBinaryVersion = '2.11'
+  scalaVersion = '2.11.8'
+  sparkVersion = '2.0.0'
+  saltVersion = '4.0.0'
+  sparkpipeVersion = '0.9.8'
+  sqliteVersion = '3.8.11.2'
+  sparkCsvVersion = '1.0.3'
+  dataFile = "ubuntu-filelist.csv"
+  dataSource = "http://assets.oculusinfo.com/salt/sample-data/${dataFile}"
+}
+
+apply from: '../../root.gradle'
+apply plugin: 'idea'
+apply plugin: 'java'
+apply plugin: 'maven'
+apply plugin: 'scala'
+
+sourceCompatibility = 1.7
+targetCompatibility = 1.7
+
+repositories {
+  mavenLocal()
+  mavenCentral()
+}
+
+configurations {
+  provided
+  compile.extendsFrom provided
 }
 
 jar {
@@ -38,17 +57,9 @@ jar {
   }
 }
 
-sourceCompatibility = 1.7
-targetCompatibility = 1.7
-
-repositories {
-    mavenLocal()
-    mavenCentral()
-}
-
-configurations {
-    provided
-    compile.extendsFrom provided
+task run(overwrite: true, type: Exec, dependsOn: [startGenEnv, createDataDirectory, downloadData, assemble]) {
+  executable = 'docker'
+  args = ["exec", project.name, "spark-submit", "--class", "software.uncharted.salt.examples.hpie.Main", "/opt/salt/build/libs/salt-hierarchical-pie-example-${version}.jar", "/opt/data/${dataFile}", "/opt/output"]
 }
 
 dependencies {
@@ -56,29 +67,24 @@ dependencies {
     compile "software.uncharted.salt:salt-core:${saltVersion}"
 
     //uncharted spark pipeline
-    compile "software.uncharted.sparkpipe:sparkpipe-core:0.9.7"
+    compile "software.uncharted.sparkpipe:sparkpipe-core:${sparkpipeVersion}"
 
     //sqlite
-    compile 'org.xerial:sqlite-jdbc:3.8.11.2'
+    compile "org.xerial:sqlite-jdbc:${sqliteVersion}"
 
     //scala
-    provided("org.scala-lang:scala-library:${scalaVersion}")
+    provided "org.scala-lang:scala-library:${scalaVersion}"
 
     //spark
     provided "org.apache.spark:spark-core_${scalaBinaryVersion}:${sparkVersion}"
     provided "org.apache.spark:spark-sql_${scalaBinaryVersion}:${sparkVersion}"
-    provided "org.scala-lang:scala-library:$scalaBinaryVersion"
+    provided "org.scala-lang:scala-library:${scalaBinaryVersion}"
 
-    compile "com.databricks:spark-csv_2.10:1.2.0"
+    compile "com.databricks:spark-csv_${scalaBinaryVersion}:${sparkCsvVersion}"
 }
 
 task wrapper(type: Wrapper) {
-    gradleVersion = '2.10'
-}
-
-task run(overwrite: true, type: Exec, dependsOn: [assemble]) {
-  executable = 'spark-submit'
-  args = ["--class","software.uncharted.salt.examples.hpie.Main","/opt/salt/build/libs/salt-hierarchical-pie-example-${version}.jar", "/opt/data/ubuntu-filelist.csv", "/opt/output"]
+    gradleVersion = '2.13'
 }
 
 idea {
@@ -87,5 +93,8 @@ idea {
         outputDir = file("$buildDir/classes/main/")
     }
 }
+
+createDataDirectory.mustRunAfter startGenEnv
+downloadData.mustRunAfter createDataDirectory
 
 defaultTasks 'run'
