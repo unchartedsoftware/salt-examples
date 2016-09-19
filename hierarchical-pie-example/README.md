@@ -32,8 +32,6 @@ cd -
 ### Viewing Results
 
 Results are viewed through a simple web app contained in `webapp/`. After generating tiles, run:
-
-**Note:** Because this webapp relies on [sqlite3 npm package](https://www.npmjs.com/package/sqlite3), it will only work with node versions **5.x and lower** .
 ```
 cd webapp
 npm install
