@@ -9,13 +9,13 @@
  */
 
 group = 'software.uncharted.salt'
-version = '4.0.1'
+version = '4.0.3'
 
 project.ext {
   scalaBinaryVersion = '2.11'
   scalaVersion = '2.11.8'
   sparkVersion = '2.0.0'
-  saltVersion = '4.0.1'
+  saltVersion = '4.0.3'
   sparkpipeVersion = '0.9.8'
   sqliteVersion = '3.8.11.2'
   dataFile = "ubuntu-filelist.csv"
