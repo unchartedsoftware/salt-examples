@@ -16,7 +16,6 @@ project.ext {
   scalaVersion = '2.11.8'
   sparkVersion = '2.0.0'
   saltVersion = '4.0.1'
-  sparkCsvVersion = '1.0.3'
   dataFile = "taxi_one_day.csv"
   dataSource = "http://assets.oculusinfo.com/salt/sample-data/${dataFile}"
 }
@@ -70,8 +69,6 @@ dependencies {
   provided "org.apache.spark:spark-core_${scalaBinaryVersion}:${sparkVersion}"
   provided "org.apache.spark:spark-sql_${scalaBinaryVersion}:${sparkVersion}"
   provided "org.scala-lang:scala-library:${scalaBinaryVersion}"
-
-  compile "com.databricks:spark-csv_${scalaBinaryVersion}:${sparkCsvVersion}"
 }
 
 task wrapper(type: Wrapper) {

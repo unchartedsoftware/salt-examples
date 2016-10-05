@@ -49,10 +49,10 @@ object Main {
     val sparkSession = SparkSession.builder.appName("salt-bin-example").getOrCreate()
     val sc = sparkSession.sparkContext
 
-    sparkSession.read.format("com.databricks.spark.csv")
+    sparkSession.read.format("csv")
       .option("header", "true")
       .option("inferSchema", "true")
-      .load(s"file://$inputPath")
+      .load(inputPath)
       .createOrReplaceTempView("taxi_micro")
 
     // Construct an RDD of Rows containing only the fields we need. Cache the result

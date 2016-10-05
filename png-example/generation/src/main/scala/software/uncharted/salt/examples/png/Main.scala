@@ -78,11 +78,11 @@ object Main {
     val sparkSession = SparkSession.builder.appName("salt-png-example").getOrCreate()
     val sc = sparkSession.sparkContext
 
-    sparkSession.read.format("com.databricks.spark.csv")
+    sparkSession.read.format("csv")
       .option("header", "true")
       .option("inferSchema", "true")
-      .load(s"file://$inputPath")
-      .registerTempTable("taxi_micro")
+      .load(inputPath)
+      .createOrReplaceTempView("taxi_micro")
 
     // Construct an RDD of Rows containing only the fields we need. Cache the result
     val input = sparkSession.sql("select pickup_lon, pickup_lat from taxi_micro")
