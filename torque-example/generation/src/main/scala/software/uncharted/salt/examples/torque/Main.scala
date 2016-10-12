@@ -107,10 +107,9 @@ object Main {
     val sparkSession = SparkSession.builder.appName("salt-torque-example").getOrCreate()
     val sc = sparkSession.sparkContext
 
-    sparkSession.read.format("com.databricks.spark.csv")
-      .option("header", "true")
+    sparkSession.read.option("header", "true")
       .option("inferSchema", "true")
-      .load(s"file://$inputPath")
+      .csv(inputPath)
       .createOrReplaceTempView("taxi_micro")
 
     // Construct an RDD of Rows containing only the fields we need. Cache the result
