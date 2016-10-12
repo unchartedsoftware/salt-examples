@@ -122,10 +122,9 @@ object Main {
     // using the Uncharted Spark Pipeline for ETL
     val inputDataPipe = Pipe(() => {
       // load source data
-      sparkSession.read.format("csv")
-        .option("header", "true")
+      sparkSession.read.option("header", "true")
         .option("inferSchema", "true")
-        .load(inputPath)
+        .csv(inputPath)
     })
     // convert to rdd
     .to(ops.core.dataframe.toRDD)

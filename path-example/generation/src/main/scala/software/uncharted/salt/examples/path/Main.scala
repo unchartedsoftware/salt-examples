@@ -63,10 +63,9 @@ object Main {
     val sparkSession = SparkSession.builder.appName("salt-path-example").getOrCreate()
     val sc = sparkSession.sparkContext
 
-    sparkSession.read.format("csv")
-      .option("header", "true")
+    sparkSession.read.option("header", "true")
       .option("inferSchema", "true")
-      .load(inputPath)
+      .csv(inputPath)
       .sample(false,  0.25) //sample only 25% of the data so that the demo works on a laptop
       .createOrReplaceTempView("taxi_micro")
 
