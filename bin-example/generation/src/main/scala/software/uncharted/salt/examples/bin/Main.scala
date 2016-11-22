@@ -27,7 +27,7 @@ object Main {
   def createByteBuffer(tile: SeriesData[(Int, Int, Int), (Int, Int), Double, (Double, Double)]): Array[Byte] = {
     val byteArray = new Array[Byte](tileSize * tileSize * 8)
     var j = 0
-    tile.bins.foreach(b => {
+    tile.bins.seq.foreach(b => {
       val data = java.lang.Double.doubleToLongBits(b)
       for (i <- 0 to 7) {
         byteArray(j) = ((data >> (i * 8)) & 0xff).asInstanceOf[Byte]

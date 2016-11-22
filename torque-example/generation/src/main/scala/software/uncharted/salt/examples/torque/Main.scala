@@ -64,16 +64,17 @@ object Main {
   // Given a SeriesData object with bins of List((time,count)) create a TileJSON object
   // to the spec given here: https://github.com/CartoDB/tilecubes/blob/master/2.0/spec.md
   def createTileJSON(seriesData: SeriesData[(Int,Int,Int),(Int, Int),_,_]) = {
-    val bins = seriesData.bins.zipWithIndex.flatMap(x => {
-      val data = x._1.asInstanceOf[List[(Int,Int)]]
+    val bins = seriesData.bins.seq.zipWithIndex.flatMap(bin => {
+      val data = bin._1.asInstanceOf[List[(Int,Int)]]
       // Only create records for bins with data
       if (data.nonEmpty) {
         // Generate Torque formatted JSON
         val times: java.util.List[Int] = data.map(_._1)
         val values: java.util.List[Int] = data.map(_._2)
+        val (x, y) = seriesData.projection.binFrom1D(bin._2, seriesData.maxBin)
         Some(JSONObject(Map(
-          "x__uint8" -> x._2 % tileSize,
-          "y__uint8" -> (tileSize - Math.floor(x._2/tileSize).toInt - 1),
+          "x__uint8" -> x,
+          "y__uint8" -> y,
           "vals__uint8" -> values,
           "dates__uint16" -> times
         )))
