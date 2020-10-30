@@ -9,6 +9,9 @@
   },
   "author": "Kevin Birk <kbirk@unchartedsoftware.com>",
   "license": "Apache-2.0",
+  "dependencies": {
+    "@uncharted/salt": "3.0.0"
+  },
   "devDependencies": {
     "express": "^4.13.3"
   }
