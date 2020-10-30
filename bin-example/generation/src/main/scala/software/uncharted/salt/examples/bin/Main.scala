@@ -27,7 +27,7 @@ object Main {
   def createByteBuffer(tile: SeriesData[(Int, Int, Int), (Int, Int), Double, (Double, Double)]): Array[Byte] = {
     val byteArray = new Array[Byte](tileSize * tileSize * 8)
     var j = 0
-    tile.bins.foreach(b => {
+    tile.bins.seq.foreach(b => {
       val data = java.lang.Double.doubleToLongBits(b)
       for (i <- 0 to 7) {
         byteArray(j) = ((data >> (i * 8)) & 0xff).asInstanceOf[Byte]
@@ -49,10 +49,9 @@ object Main {
     val sparkSession = SparkSession.builder.appName("salt-bin-example").getOrCreate()
     val sc = sparkSession.sparkContext
 
-    sparkSession.read.format("com.databricks.spark.csv")
-      .option("header", "true")
+    sparkSession.read.option("header", "true")
       .option("inferSchema", "true")
-      .load(s"file://$inputPath")
+      .csv(inputPath)
       .createOrReplaceTempView("taxi_micro")
 
     // Construct an RDD of Rows containing only the fields we need. Cache the result

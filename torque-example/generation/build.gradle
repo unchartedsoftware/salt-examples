@@ -9,14 +9,13 @@
  */
 
 group = 'software.uncharted.salt'
-version = '4.0.1'
+version = '4.0.3'
 
 project.ext {
   scalaBinaryVersion = '2.11'
   scalaVersion = '2.11.8'
   sparkVersion = '2.0.0'
-  saltVersion = '4.0.1'
-  sparkCsvVersion = '1.0.3'
+  saltVersion = '4.0.3'
   dataFile = "taxi_one_day.csv"
   dataSource = "http://assets.oculusinfo.com/salt/sample-data/${dataFile}"
 }
@@ -57,7 +56,7 @@ jar {
 
 task run(overwrite: true, type: Exec, dependsOn: [startGenEnv, createDataDirectory, downloadData, assemble]) {
   executable = 'docker'
-  args = ["exec", project.name, "spark-submit", "--class","software.uncharted.salt.examples.torque.Main","/opt/salt/build/libs/salt-torque-example-${version}.jar", "/opt/data/${dataFile}", "/opt/output"]
+  args = ["exec", project.name, "spark-submit", "--class","software.uncharted.salt.examples.torque.Main", "--master", "local", "/opt/salt/build/libs/salt-torque-example-${version}.jar", "/opt/data/${dataFile}", "/opt/output"]
 }
 
 dependencies {
@@ -70,8 +69,6 @@ dependencies {
   provided "org.apache.spark:spark-core_${scalaBinaryVersion}:${sparkVersion}"
   provided "org.apache.spark:spark-sql_${scalaBinaryVersion}:${sparkVersion}"
   provided "org.scala-lang:scala-library:${scalaBinaryVersion}"
-
-  compile "com.databricks:spark-csv_${scalaBinaryVersion}:${sparkCsvVersion}"
 }
 
 task wrapper(type: Wrapper) {

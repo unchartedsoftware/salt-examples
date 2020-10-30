@@ -57,7 +57,7 @@ object Main {
   // Creates and returns an Array of RGBA values encoded as 32bit integers
   def createRGBABuffer(tile: SeriesData[(Int, Int, Int), (Int, Int), Double, (Double, Double)], min: Double, max: Double): Array[Int] = {
     val rgbArray = new Array[Int](tileSize * tileSize)
-    tile.bins.zipWithIndex.foreach(b => {
+    tile.bins.seq.zipWithIndex.foreach(b => {
       val count = b._1
       val index = b._2
       val color = interpolateColor(count, min, max)
@@ -78,11 +78,10 @@ object Main {
     val sparkSession = SparkSession.builder.appName("salt-png-example").getOrCreate()
     val sc = sparkSession.sparkContext
 
-    sparkSession.read.format("com.databricks.spark.csv")
-      .option("header", "true")
+    sparkSession.read.option("header", "true")
       .option("inferSchema", "true")
-      .load(s"file://$inputPath")
-      .registerTempTable("taxi_micro")
+      .csv(inputPath)
+      .createOrReplaceTempView("taxi_micro")
 
     // Construct an RDD of Rows containing only the fields we need. Cache the result
     val input = sparkSession.sql("select pickup_lon, pickup_lat from taxi_micro")
